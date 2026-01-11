@@ -34,17 +34,17 @@
 
 <div class="container">
     <div id="pageLogin" class="card">
-        <h1>🔐 เข้าสู่ระบบ</h1>
-        <p>ยืนยันตัวตนด้วยเบอร์โทรศัพท์ (ฟรี)</p>
+        <h1> เข้าสู่ระบบ</h1>
+        <p>ยืนยันตัวตนด้วยเบอร์โทรศัพท์</p>
         <input type="tel" id="loginPhone" placeholder="+66812345678" value="+66">
         
         <div id="recaptcha-container"></div>
         
-        <button class="btn-main" onclick="sendOTP()">📩 รับรหัส OTP (SMS)</button>
+        <button class="btn-main" onclick="sendOTP()"> รับรหัส OTP (SMS)</button>
     </div>
 
     <div id="pageOTP" class="card hidden">
-        <h1>💬 ยืนยันตัวตน</h1>
+        <h1>ยืนยันตัวตน</h1>
         <p>กรุณากรอกรหัส 6 หลักที่ได้รับทาง SMS</p>
         <input type="text" id="otpInput" placeholder="xxxxxx" maxlength="6">
         <button class="btn-confirm" onclick="verifyOTP()">ยืนยันรหัส</button>
@@ -52,10 +52,10 @@
     </div>
 
     <div id="pageMenu" class="card hidden">
-        <h1>📦 Smart Locker</h1>
+        <h1>DropNlock</h1>
         <p id="welcomeUser"></p>
-        <button class="btn-sender" onclick="nav('sender')">🚚 ผู้ส่ง (ฝากของ)</button>
-        <button class="btn-receiver" onclick="nav('receiver')">🎁 ผู้รับ (รับของ)</button>
+        <button class="btn-sender" onclick="nav('sender')"> ผู้ส่ง (ฝากของ)</button>
+        <button class="btn-receiver" onclick="nav('receiver')"> ผู้รับ (รับของ)</button>
         <button onclick="logout()" style="background:none; color:#999; margin-top:15px;">ออกจากระบบ</button>
     </div>
 
@@ -72,7 +72,7 @@
 
     <div id="pageReceiver" class="card hidden">
         <div style="text-align:left;"><button onclick="nav('menu')" style="background:none; color:#999; margin:0;">⬅ กลับ</button></div>
-        <h2>🔍 ค้นหาพัสดุ</h2>
+        <h2> ค้นหาพัสดุ</h2>
         <input type="tel" id="sPhone" placeholder="เบอร์ผู้รับ (4 ตัวท้าย)" maxlength="4">
         <button class="btn-receiver" onclick="doSearch()">ค้นหาตู้ของฉัน</button>
         <div id="resultBox" style="margin-top:15px;"></div>
@@ -130,13 +130,13 @@
         auth.signInWithPhoneNumber(phoneNumber, appVerifier)
             .then((result) => {
                 confirmationResult = result;
-                alert("✅ ส่ง SMS แล้ว! กรุณารอสักครู่");
+                alert("กรุณารอสักครู่");
                 document.getElementById('pageLogin').classList.add('hidden');
                 document.getElementById('pageOTP').classList.remove('hidden');
             }).catch((error) => {
                 alert("เกิดข้อผิดพลาด: " + error.message);
                 console.error(error);
-                btn.innerText = "📩 รับรหัส OTP (SMS)";
+                btn.innerText = " รับรหัส OTP (SMS)";
                 btn.disabled = false;
                 // รีเซ็ต Recaptcha
                 window.recaptchaVerifier.render().then(function(widgetId) {
@@ -214,7 +214,7 @@
                 sender: currentUserPhone 
             }) 
         });
-        alert("✅ ฝากของสำเร็จ!"); 
+        alert("ฝากของสำเร็จ"); 
         nav('menu');
         btn.innerText = "ยืนยันการฝาก";
         btn.disabled = false;
@@ -223,7 +223,7 @@
     async function doSearch() {
         const ph = document.getElementById('sPhone').value;
         const box = document.getElementById('resultBox');
-        box.innerHTML = "🔍 กำลังค้นหา...";
+        box.innerHTML = " กำลังค้นหา...";
 
         const res = await fetch(`${API_URL}?action=find&phone=${ph}`);
         const d = await res.json();
@@ -231,19 +231,19 @@
         if(d.found) {
             box.innerHTML = `
                 <div style="background:#e8f5e9; padding:15px; border-radius:10px; border:1px solid #c8e6c9;">
-                    <h3 style="color:#2e7d32; margin-top:0;">🎉 พบพัสดุ!</h3>
+                    <h3 style="color:#2e7d32; margin-top:0;"> พบพัสดุ</h3>
                     <p>ของอยู่ที่ <b>ตู้หมายเลข ${d.locker}</b></p>
-                    <button onclick="doClear('${d.locker}')" class="btn-confirm">📦 ยืนยันรับของ (เคลียร์ตู้)</button>
+                    <button onclick="doClear('${d.locker}')" class="btn-confirm"> ยืนยันรับของ</button>
                 </div>`;
         } else {
-            box.innerHTML = `<div style="background:#ffebee; padding:15px; border-radius:10px; color:#c62828;">❌ ไม่พบพัสดุ หรือตู้ว่างอยู่</div>`;
+            box.innerHTML = `<div style="background:#ffebee; padding:15px; border-radius:10px; color:#c62828;"> ไม่พบพัสดุ หรือตู้ว่างอยู่</div>`;
         }
     }
 
     async function doClear(n) {
-        if(!confirm("ยืนยันว่าได้รับของแล้ว?")) return;
+        if(!confirm("ยืนยันว่าได้รับของแล้ว")) return;
         await fetch(API_URL, { method:'POST', body:JSON.stringify({action:'clear', locker:n}) });
-        alert("🎉 ตู้ว่างพร้อมใช้งานแล้ว"); 
+        alert(" ตู้ว่างพร้อมใช้งานแล้ว"); 
         nav('menu');
     }
 </script>
