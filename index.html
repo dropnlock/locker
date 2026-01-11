@@ -3,75 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Locker - OTP Email</title>
+    <title>Smart Locker - Firebase Auth</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
     <style>
-        /* --- CSS ตกแต่ง --- */
         body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         .container { width: 100%; max-width: 420px; text-align: center; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         h1 { color: #2c3e50; font-size: 24px; margin-bottom: 10px; }
         p { color: #666; font-size: 14px; margin-bottom: 20px; }
-        
         input { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ecf0f1; border-radius: 10px; font-size: 16px; text-align: center; box-sizing: border-box; outline: none; transition: 0.3s; }
         input:focus { border-color: #3498db; }
-        
         button { width: 100%; padding: 14px; margin-top: 10px; border: none; border-radius: 10px; cursor: pointer; color: white; font-weight: bold; font-size: 16px; transition: 0.2s; }
         button:active { transform: scale(0.98); }
-        
-        .btn-main { background: #2c3e50; }
-        .btn-confirm { background: #27ae60; }
-        .btn-sender { background: #e67e22; }
-        .btn-receiver { background: #3498db; }
-        .btn-back { background: transparent; color: #999; width: auto; font-size: 14px; margin-top: 15px; }
-
+        .btn-main { background: #2c3e50; } .btn-confirm { background: #27ae60; } .btn-sender { background: #e67e22; } .btn-receiver { background: #3498db; }
         .hidden { display: none; }
-        
-        /* Grid ตู้ */
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
         .l-btn { padding: 15px; border-radius: 10px; border: 2px solid #eee; background: white; font-size: 14px; transition: 0.2s; }
         .available { background: #e8f5e9; color: #27ae60; border-color: #2ecc71; cursor: pointer; }
         .available:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(46, 204, 113, 0.2); }
         .occupied { background: #ffebee; color: #c0392b; border-color: #e74c3c; cursor: not-allowed; opacity: 0.6; }
-
-        /* ผลลัพธ์ */
-        .res-box { margin-top: 15px; padding: 15px; border-radius: 10px; animation: fadeIn 0.3s; }
+        /* Recaptcha Container */
+        #recaptcha-container { margin: 15px auto; display: flex; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
-
     <div id="pageLogin" class="card">
-        <h1> เข้าสู่ระบบ</h1>
-        <p>กรุณากรอกอีเมลเพื่อรับรหัส OTP</p>
-        <input type="email" id="loginEmail" placeholder="example@gmail.com">
-        <button class="btn-main" onclick="sendOTP()"> ส่งรหัส OTP ทางอีเมล</button>
+        <h1>🔐 เข้าสู่ระบบ</h1>
+        <p>ยืนยันตัวตนด้วยเบอร์โทรศัพท์ (ฟรี)</p>
+        <input type="tel" id="loginPhone" placeholder="+66812345678" value="+66">
+        
+        <div id="recaptcha-container"></div>
+        
+        <button class="btn-main" onclick="sendOTP()">📩 รับรหัส OTP (SMS)</button>
     </div>
 
     <div id="pageOTP" class="card hidden">
-        <h1> ยืนยันตัวตน</h1>
-        <p>รหัสถูกส่งไปที่อีเมลของคุณแล้ว<br>(เช็คใน Inbox หรือ Junk Mail)</p>
-        <input type="text" id="otpInput" placeholder="รหัส 6 หลัก" maxlength="6">
+        <h1>💬 ยืนยันตัวตน</h1>
+        <p>กรุณากรอกรหัส 6 หลักที่ได้รับทาง SMS</p>
+        <input type="text" id="otpInput" placeholder="xxxxxx" maxlength="6">
         <button class="btn-confirm" onclick="verifyOTP()">ยืนยันรหัส</button>
-        <button class="btn-back" onclick="location.reload()">❌ ยกเลิก</button>
+        <button onclick="location.reload()" style="background:none; color:#999; margin-top:10px;">ยกเลิก / เปลี่ยนเบอร์</button>
     </div>
 
     <div id="pageMenu" class="card hidden">
-        <h1> DropNLock</h1>
+        <h1>📦 Smart Locker</h1>
         <p id="welcomeUser"></p>
-        <button class="btn-sender" onclick="nav('sender')"> ผู้ส่ง (ฝากของ)</button>
-        <button class="btn-receiver" onclick="nav('receiver')"> ผู้รับ (รับของ)</button>
-        <button class="btn-back" onclick="location.reload()">ออกจากระบบ</button>
+        <button class="btn-sender" onclick="nav('sender')">🚚 ผู้ส่ง (ฝากของ)</button>
+        <button class="btn-receiver" onclick="nav('receiver')">🎁 ผู้รับ (รับของ)</button>
+        <button onclick="logout()" style="background:none; color:#999; margin-top:15px;">ออกจากระบบ</button>
     </div>
 
     <div id="pageSender" class="card hidden">
-        <div style="text-align:left;"><button class="btn-back" style="margin:0;" onclick="nav('menu')">⬅ กลับ</button></div>
+        <div style="text-align:left;"><button onclick="nav('menu')" style="background:none; color:#999; margin:0;">⬅ กลับ</button></div>
         <h2>เลือกตู้ที่ว่าง</h2>
-        <div id="lockerGrid" class="grid">กำลังโหลด...</div>
-        
+        <div id="lockerGrid" class="grid">Loading...</div>
         <div id="reserveForm" class="hidden" style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
             <p>ฝากที่ตู้: <b id="targetLocker" style="color:#e67e22; font-size:20px;"></b></p>
             <input type="tel" id="rPhone" placeholder="เบอร์ผู้รับ (4 ตัวท้าย)" maxlength="4">
@@ -80,85 +71,113 @@
     </div>
 
     <div id="pageReceiver" class="card hidden">
-        <div style="text-align:left;"><button class="btn-back" style="margin:0;" onclick="nav('menu')">⬅ กลับ</button></div>
-        <h2> ค้นหาพัสดุ</h2>
+        <div style="text-align:left;"><button onclick="nav('menu')" style="background:none; color:#999; margin:0;">⬅ กลับ</button></div>
+        <h2>🔍 ค้นหาพัสดุ</h2>
         <input type="tel" id="sPhone" placeholder="เบอร์ผู้รับ (4 ตัวท้าย)" maxlength="4">
         <button class="btn-receiver" onclick="doSearch()">ค้นหาตู้ของฉัน</button>
-        <div id="searchResult"></div>
+        <div id="resultBox" style="margin-top:15px;"></div>
     </div>
-
 </div>
 
 <script>
-    // ✅ อัปเดต URL ของคุณให้แล้วครับ
-    const API_URL = "https://script.google.com/macros/s/AKfycbxt4gd07QZNE8VVkKe2rBgdto7M8-uZaFlDl3c6QRMLEi-8ARXtZwkgmyaPCYgBOXkCSQ/exec";
+    // ✅ 1. ใส่ Config ของคุณเรียบร้อยแล้ว
+    const firebaseConfig = {
+      apiKey: "AIzaSyDnPenoLXFdVPtUUR3z9lQACAeS6WZcyyU",
+      authDomain: "dropnlock-b9699.firebaseapp.com",
+      projectId: "dropnlock-b9699",
+      storageBucket: "dropnlock-b9699.firebasestorage.app",
+      messagingSenderId: "971185135920",
+      appId: "1:971185135920:web:f208fe01f1773d257428f5",
+      measurementId: "G-JV5HQTG9FB"
+    };
 
-    let currentEmail = "";
+    // ✅ 2. ใส่ URL Apps Script ใหม่ของคุณแล้ว
+    const API_URL = "https://script.google.com/macros/s/AKfycby5p-MrPS_NcSz0GSEcy5FrMfnZRB5MYrw66bWjTGeVBowfd-nXwZTUPlGA_gbS0dQUCg/exec";
+
+    // เริ่มต้นระบบ Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    auth.languageCode = 'th'; // ตั้งค่า SMS เป็นภาษาไทย
+
+    let confirmationResult = null;
+    let currentUserPhone = "";
     let selectedLocker = null;
 
-    /* --- ส่วน Login OTP --- */
-    async function sendOTP() {
-        const email = document.getElementById('loginEmail').value;
-        if(!email.includes("@")) return alert("กรุณากรอกอีเมลให้ถูกต้อง");
+    // ตั้งค่า Recaptcha (กันบอท)
+    window.onload = function() {
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+            'size': 'normal',
+            'callback': (response) => {
+                // reCAPTCHA solved
+            }
+        });
+        window.recaptchaVerifier.render();
+    };
+
+    function sendOTP() {
+        const phoneNumber = document.getElementById('loginPhone').value;
+        const appVerifier = window.recaptchaVerifier;
+
+        // เช็คว่ามี +66 หรือยัง
+        if(phoneNumber.length < 10 || !phoneNumber.startsWith('+')) {
+            return alert("กรุณากรอกเบอร์ให้ครบและถูกต้อง (+66...)");
+        }
 
         const btn = event.target;
-        btn.innerText = "⏳ กำลังส่งอีเมล...";
+        btn.innerText = "กำลังส่ง SMS...";
         btn.disabled = true;
 
-        try {
-            await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'sendOTP', email: email })
+        auth.signInWithPhoneNumber(phoneNumber, appVerifier)
+            .then((result) => {
+                confirmationResult = result;
+                alert("✅ ส่ง SMS แล้ว! กรุณารอสักครู่");
+                document.getElementById('pageLogin').classList.add('hidden');
+                document.getElementById('pageOTP').classList.remove('hidden');
+            }).catch((error) => {
+                alert("เกิดข้อผิดพลาด: " + error.message);
+                console.error(error);
+                btn.innerText = "📩 รับรหัส OTP (SMS)";
+                btn.disabled = false;
+                // รีเซ็ต Recaptcha
+                window.recaptchaVerifier.render().then(function(widgetId) {
+                  grecaptcha.reset(widgetId);
+                });
             });
-            currentEmail = email;
-            alert("✅ส่งรหัสเรียบร้อย! กรุณาเช็คอีเมล (รวมถึงถังขยะ/Spam)");
-            document.getElementById('pageLogin').classList.add('hidden');
-            document.getElementById('pageOTP').classList.remove('hidden');
-        } catch(e) {
-            alert("เกิดข้อผิดพลาดในการส่งเมล โปรดตรวจสอบ URL หรือ Deploy ใหม่");
-            btn.innerText = " ส่งรหัส OTP ทางอีเมล";
-            btn.disabled = false;
-        }
     }
 
-    async function verifyOTP() {
-        const otp = document.getElementById('otpInput').value;
-        const btn = event.target;
-        btn.innerText = "⏳ กำลังตรวจสอบ...";
-        
-        try {
-            const res = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'verifyOTP', email: currentEmail, otp: otp })
-            });
-            const data = await res.json();
+    function verifyOTP() {
+        const code = document.getElementById('otpInput').value;
+        confirmationResult.confirm(code).then((result) => {
+            const user = result.user;
+            currentUserPhone = user.phoneNumber;
             
-            if (data.status === 'success') {
-                document.getElementById('welcomeUser').innerText = "ผู้ใช้งาน: " + currentEmail;
-                document.getElementById('pageOTP').classList.add('hidden');
-                document.getElementById('pageMenu').classList.remove('hidden');
-            } else {
-                alert(" รหัสไม่ถูกต้อง");
-                btn.innerText = "ยืนยันรหัส";
-            }
-        } catch(e) { alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้"); }
+            document.getElementById('welcomeUser').innerText = "ผู้ใช้งาน: " + currentUserPhone;
+            document.getElementById('pageOTP').classList.add('hidden');
+            document.getElementById('pageMenu').classList.remove('hidden');
+        }).catch((error) => {
+            alert("❌ รหัสไม่ถูกต้อง");
+        });
     }
 
-    /* --- ส่วน Locker System --- */
+    function logout() {
+        auth.signOut().then(() => location.reload());
+    }
+
+    /* --- ส่วนเชื่อมต่อ Locker --- */
     function nav(p) {
         document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
         if(p=='menu') document.getElementById('pageMenu').classList.remove('hidden');
         if(p=='sender') { document.getElementById('pageSender').classList.remove('hidden'); loadLockers(); }
         if(p=='receiver') { 
             document.getElementById('pageReceiver').classList.remove('hidden'); 
-            document.getElementById('searchResult').innerHTML = ""; // ล้างผลเก่า
-            document.getElementById('sPhone').value = "";
+            document.getElementById('resultBox').innerHTML=""; 
+            document.getElementById('sPhone').value="";
         }
     }
 
     async function loadLockers() {
         const grid = document.getElementById('lockerGrid');
-        grid.innerHTML = "กำลังโหลดข้อมูล...";
+        grid.innerHTML = "Loading...";
         try {
             const res = await fetch(API_URL + "?action=checkStatus");
             const data = await res.json();
@@ -168,63 +187,63 @@
                 b.className = `l-btn ${x.status==='Available'?'available':'occupied'}`;
                 b.innerHTML = `ตู้ ${x.locker}<br>${x.status==='Available'?'ว่าง':'เต็ม'}`;
                 b.disabled = x.status !== 'Available';
-                if(x.status==='Available') {
-                    b.onclick = () => {
-                        selectedLocker = x.locker;
-                        document.getElementById('targetLocker').innerText = x.locker;
-                        document.getElementById('reserveForm').classList.remove('hidden');
-                    };
-                }
+                if(x.status==='Available') b.onclick = () => {
+                    selectedLocker = x.locker;
+                    document.getElementById('targetLocker').innerText = x.locker;
+                    document.getElementById('reserveForm').classList.remove('hidden');
+                };
                 grid.appendChild(b);
             });
-        } catch(e) { grid.innerHTML = "โหลดข้อมูลล้มเหลว (เช็ค URL / สิทธิ์ Anyone)"; }
+        } catch(e) { grid.innerHTML = "โหลดข้อมูลล้มเหลว (เช็ค URL App Script)"; }
     }
 
     async function doReserve() {
         const ph = document.getElementById('rPhone').value;
-        if(ph.length < 4) return alert("กรอกเบอร์ผู้รับให้ครบ 4 ตัว");
+        if(ph.length < 4) return alert("กรอกเบอร์ผู้รับให้ครบ");
         
         const btn = event.target;
-        const oldText = btn.innerText;
         btn.innerText = "กำลังบันทึก...";
         btn.disabled = true;
 
-        try {
-            await fetch(API_URL, { method:'POST', body:JSON.stringify({action:'reserve', locker:selectedLocker, phone:ph}) });
-            alert(" ฝากของสำเร็จ!"); 
-            nav('menu');
-        } catch(e) { alert("เกิดข้อผิดพลาด"); }
-        
-        btn.innerText = oldText;
+        await fetch(API_URL, { 
+            method:'POST', 
+            body:JSON.stringify({
+                action:'reserve', 
+                locker:selectedLocker, 
+                phone:ph,
+                sender: currentUserPhone 
+            }) 
+        });
+        alert("✅ ฝากของสำเร็จ!"); 
+        nav('menu');
+        btn.innerText = "ยืนยันการฝาก";
         btn.disabled = false;
     }
 
     async function doSearch() {
         const ph = document.getElementById('sPhone').value;
-        const box = document.getElementById('searchResult');
+        const box = document.getElementById('resultBox');
         box.innerHTML = "🔍 กำลังค้นหา...";
+
+        const res = await fetch(`${API_URL}?action=find&phone=${ph}`);
+        const d = await res.json();
         
-        try {
-            const res = await fetch(`${API_URL}?action=find&phone=${ph}`);
-            const d = await res.json();
-            
-            if(d.found) {
-                box.innerHTML = `
-                    <div class="res-box" style="background:#e8f5e9; border:1px solid #c8e6c9;">
-                        <h3 style="color:#2e7d32; margin-top:0;"> พบพัสดุ!</h3>
-                        <p>ของอยู่ที่ <b>ตู้หมายเลข ${d.locker}</b></p>
-                        <button class="btn-confirm" onclick="doClear('${d.locker}')"> ยืนยันรับของ (เคลียร์ตู้)</button>
-                    </div>`;
-            } else {
-                box.innerHTML = `<div class="res-box" style="background:#ffebee; color:#c62828;">❌ ไม่พบพัสดุ หรือตู้ว่างอยู่</div>`;
-            }
-        } catch(e) { box.innerHTML = "ค้นหาล้มเหลว"; }
+        if(d.found) {
+            box.innerHTML = `
+                <div style="background:#e8f5e9; padding:15px; border-radius:10px; border:1px solid #c8e6c9;">
+                    <h3 style="color:#2e7d32; margin-top:0;">🎉 พบพัสดุ!</h3>
+                    <p>ของอยู่ที่ <b>ตู้หมายเลข ${d.locker}</b></p>
+                    <button onclick="doClear('${d.locker}')" class="btn-confirm">📦 ยืนยันรับของ (เคลียร์ตู้)</button>
+                </div>`;
+        } else {
+            box.innerHTML = `<div style="background:#ffebee; padding:15px; border-radius:10px; color:#c62828;">❌ ไม่พบพัสดุ หรือตู้ว่างอยู่</div>`;
+        }
     }
 
     async function doClear(n) {
-        if(!confirm("ยืนยันว่าได้รับของแล้ว? ระบบจะเคลียร์ตู้ให้ว่าง")) return;
+        if(!confirm("ยืนยันว่าได้รับของแล้ว?")) return;
         await fetch(API_URL, { method:'POST', body:JSON.stringify({action:'clear', locker:n}) });
-        alert(" รับของเรียบร้อย ตู้ว่างพร้อมใช้งานต่อแล้ว");
+        alert("🎉 ตู้ว่างพร้อมใช้งานแล้ว"); 
         nav('menu');
     }
 </script>
