@@ -2,11 +2,9 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <script>
-    // ---------------------------------------------------------
-    // 1️⃣ ตั้งค่า Config (⚠️ สำคัญ: ก๊อป Config ของคุณมาใส่ตรงนี้)
-    // ---------------------------------------------------------
+    // 1️⃣ ตั้งค่า Config (ใส่ข้อมูลของคุณให้แล้วครับ ✅)
     const firebaseConfig = {
-      apiKey: "AIzaSyDnPenoLXFdVPtUUR3z9lQACAeS6WZcyyU", // <-- ใส่ของตัวเอง
+      apiKey: "AIzaSyDnPenoLXFdVPtUUR3z9lQACAeS6WZcyyU",
       authDomain: "dropnlock-b9699.firebaseapp.com",
       projectId: "dropnlock-b9699",
       storageBucket: "dropnlock-b9699.firebasestorage.app",
@@ -62,7 +60,7 @@
             const welcomeUser = document.getElementById('welcomeUser');
             if(welcomeUser) welcomeUser.innerText = "ผู้ใช้: " + currentUserPhone;
 
-            // เช็คว่าต้องไปหน้าไหน?
+            // เช็คว่าต้องไปหน้าไหน? (ตามที่กดมาจาก LINE)
             checkDeepLink(); 
 
         } else {
