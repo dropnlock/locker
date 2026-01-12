@@ -1,97 +1,103 @@
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
 <script>
-    // ==========================================
-    // 1. ตั้งค่า Config (อย่าลืมแก้เป็นของคุณ)
-    // ==========================================
+    // ---------------------------------------------------------
+    // 1️⃣ ตั้งค่า Config (⚠️ สำคัญ: ก๊อป Config ของคุณมาใส่ตรงนี้)
+    // ---------------------------------------------------------
     const firebaseConfig = {
-        apiKey: "AIzaSyDnPenoLXFdVPtUUR3z9lQACAeS6WZcyyU",
-        authDomain: "dropnlock-b9699.firebaseapp.com",
-        projectId: "dropnlock-b9699",
-        storageBucket: "dropnlock-b9699.firebasestorage.app",
-        messagingSenderId: "971185135920",
-        appId: "1:971185135920:web:f208fe01f1773d257428f5",
-        measurementId: "G-JV5HQTG9FB"
+      apiKey: "AIzaSyDnPenoLXFdVPtUUR3z9lQACAeS6WZcyyU", // <-- ใส่ของตัวเอง
+      authDomain: "dropnlock-b9699.firebaseapp.com",
+      projectId: "dropnlock-b9699",
+      storageBucket: "dropnlock-b9699.firebasestorage.app",
+      messagingSenderId: "971185135920",
+      appId: "1:971185135920:web:f208fe01f1773d257428f5",
+      measurementId: "G-JV5HQTG9FB"
     };
 
-    // ใส่ URL Google Apps Script ของคุณที่นี่
+    // ลิงก์ Apps Script ของคุณ
     const API_URL = "https://script.google.com/macros/s/AKfycby5p-MrPS_NcSz0GSEcy5FrMfnZRB5MYrw66bWjTGeVBowfd-nXwZTUPlGA_gbS0dQUCg/exec";
 
-    // เริ่มต้น Firebase
-    firebase.initializeApp(firebaseConfig);
+    // เริ่มต้นระบบ Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const auth = firebase.auth();
-    auth.languageCode = 'th';
+    auth.languageCode = 'th'; // ใช้ภาษาไทย
 
-    // ==========================================
-    // 🔥 2. ส่วนที่เพิ่ม: แยกการจำรหัส (LINE vs Web)
-    // ==========================================
-    const isLineApp = /Line/i.test(navigator.userAgent); // เช็คว่าเป็นแอป LINE หรือไม่?
-
-    // ถ้าเป็น LINE -> ให้จำตลอดไป (LOCAL)
-    // ถ้าเป็น เว็บทั่วไป -> ให้จำแค่ชั่วคราว ปิดแท็บแล้วลืม (SESSION)
+    // ---------------------------------------------------------
+    // 2️⃣ ระบบจำรหัสผ่าน (แยก LINE กับ Web)
+    // ---------------------------------------------------------
+    const isLineApp = /Line/i.test(navigator.userAgent); // ตรวจว่าเป็นแอป LINE ไหม?
+    
+    // ถ้าเป็น LINE -> จำตลอดไป (LOCAL)
+    // ถ้าเป็น Web -> จำแค่ตอนเปิด (SESSION)
     const persistenceMode = isLineApp 
         ? firebase.auth.Auth.Persistence.LOCAL 
         : firebase.auth.Auth.Persistence.SESSION;
 
     auth.setPersistence(persistenceMode)
-        .then(() => console.log("ตั้งค่าการจำรหัสเป็น: " + (isLineApp ? "ตลอดไป (LINE)" : "ชั่วคราว (Web)")))
-        .catch((err) => console.error("ตั้งค่า Persistence ผิดพลาด", err));
+        .then(() => console.log("โหมดการจำรหัส: " + (isLineApp ? "LINE (จำตลอด)" : "Web (ชั่วคราว)")))
+        .catch(err => console.error("Persistence Error:", err));
 
-    // ตัวแปรระบบ
+    // ตัวแปรสำหรับเก็บค่าชั่วคราว
     let confirmationResult = null;
     let currentUserPhone = "";
     let selectedLocker = null;
 
-    // ==========================================
-    // 🔥 3. ส่วนที่เพิ่ม: ตรวจสอบสถานะ + ลิงก์เจาะจง
-    // ==========================================
+    // ---------------------------------------------------------
+    // 3️⃣ ตรวจสอบสถานะล็อกอิน + ระบบ Deep Link
+    // ---------------------------------------------------------
     auth.onAuthStateChanged((user) => {
         if (user) {
-            // --- กรณีล็อกอินแล้ว ---
+            // ---> กรณีล็อกอินอยู่แล้ว <---
             currentUserPhone = user.phoneNumber;
-            console.log("Logged in as:", currentUserPhone);
-            
-            // ซ่อนหน้า Login / OTP
+            console.log("Logged in:", currentUserPhone);
+
+            // ซ่อนหน้า Login และ OTP
             document.getElementById('pageLogin').classList.add('hidden');
             document.getElementById('pageOTP').classList.add('hidden');
-            
-            // แสดงชื่อผู้ใช้
-            const welcomeUser = document.getElementById('welcomeUser');
-            if(welcomeUser) welcomeUser.innerText = "ผู้ใช้งาน: " + currentUserPhone;
 
-            // เช็คว่ากดมาจากลิงก์ไหน? (Deep Link)
+            // โชว์เบอร์โทรที่มุมจอ (ถ้ามี Element นี้)
+            const welcomeUser = document.getElementById('welcomeUser');
+            if(welcomeUser) welcomeUser.innerText = "ผู้ใช้: " + currentUserPhone;
+
+            // เช็คว่าต้องไปหน้าไหน?
             checkDeepLink(); 
+
         } else {
-            // --- กรณี "ยังไม่ล็อกอิน" หรือ "หลุด" ---
+            // ---> กรณีต้องล็อกอินใหม่ <---
             document.getElementById('pageLogin').classList.remove('hidden');
             document.getElementById('pageOTP').classList.add('hidden');
-            document.getElementById('pageMenu').classList.add('hidden');
+            document.getElementById('pageMenu').classList.add('hidden'); // ซ่อนเมนูไว้ก่อน
             
-            // สร้าง Recaptcha รอไว้
+            // เตรียมปุ่ม Captcha
             renderRecaptcha();
         }
     });
 
-    // ฟังก์ชันเช็คว่าต้องไปหน้าไหน (Sender / Receiver)
+    // ฟังก์ชันเช็คลิงก์ (เช่น ?page=sender)
     function checkDeepLink() {
         const urlParams = new URLSearchParams(window.location.search);
-        const page = urlParams.get('page'); // อ่านค่า ?page=... จากลิงก์
+        const page = urlParams.get('page');
 
         if (page === 'sender') {
             nav('sender'); // ไปหน้าจองตู้
         } else if (page === 'receiver') {
             nav('receiver'); // ไปหน้าค้นหา
         } else {
-            nav('menu'); // ไปหน้าเมนูปกติ
+            nav('menu'); // ไปหน้าเมนูหลัก
         }
     }
 
-    // ==========================================
-    // 4. ฟังก์ชันระบบเดิม (Login / OTP / ใช้งาน)
-    // ==========================================
+    // ---------------------------------------------------------
+    // 4️⃣ ฟังก์ชันการทำงาน (Login / OTP / จองตู้)
+    // ---------------------------------------------------------
     function renderRecaptcha() {
-        if(!document.getElementById('recaptcha-container').hasChildNodes()) {
+        if (!window.recaptchaVerifier) {
             window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
                 'size': 'normal',
-                'callback': (response) => { /* solved */ }
+                'callback': (response) => { /* Captcha ผ่านแล้ว */ }
             });
             window.recaptchaVerifier.render();
         }
@@ -99,20 +105,22 @@
 
     function sendOTP() {
         const phoneNumber = document.getElementById('loginPhone').value;
-        const appVerifier = window.recaptchaVerifier;
-
-        if(phoneNumber.length < 10 || !phoneNumber.startsWith('+')) {
-            return alert("กรุณากรอกเบอร์ให้ครบ (เช่น +6681...)");
+        
+        // ตรวจสอบเบอร์โทร
+        if (phoneNumber.length < 10 || !phoneNumber.startsWith('+')) {
+            alert("กรุณากรอกเบอร์ให้ถูกต้อง (ต้องมี +66...)");
+            return;
         }
 
         const btn = event.target;
-        btn.innerText = "กำลังส่ง SMS...";
+        btn.innerText = "กำลังส่ง...";
         btn.disabled = true;
 
+        const appVerifier = window.recaptchaVerifier;
         auth.signInWithPhoneNumber(phoneNumber, appVerifier)
             .then((result) => {
                 confirmationResult = result;
-                alert("✅ ส่ง SMS แล้ว! กรุณาเช็คข้อความ");
+                alert("✅ ส่ง SMS สำเร็จ!");
                 document.getElementById('pageLogin').classList.add('hidden');
                 document.getElementById('pageOTP').classList.remove('hidden');
                 btn.innerText = "รับรหัส OTP";
@@ -128,8 +136,11 @@
 
     function verifyOTP() {
         const code = document.getElementById('otpInput').value;
+        if(!confirmationResult) return alert("กรุณากดรับรหัส OTP ก่อน");
+        
         confirmationResult.confirm(code).then((result) => {
-            // ล็อกอินสำเร็จ -> onAuthStateChanged ด้านบนจะทำงานต่อเอง
+            // สำเร็จ -> ระบบจะวิ่งไปที่ auth.onAuthStateChanged เอง
+            alert("ยินดีต้อนรับ!");
         }).catch((error) => {
             alert("❌ รหัส OTP ไม่ถูกต้อง");
         });
@@ -138,124 +149,130 @@
     function logout() {
         if(confirm("ต้องการออกจากระบบ?")) {
             auth.signOut().then(() => {
-                window.location.href = window.location.pathname; // รีโหลดหน้าแบบเคลียร์ค่า
+                window.location.href = window.location.pathname; // รีโหลดหน้าเพื่อเคลียร์ค่า
             });
         }
     }
 
-    // ระบบเปลี่ยนหน้า (Navigation)
-    function nav(p) {
-        // ซ่อนทุกหน้าก่อน
-        document.getElementById('pageMenu').classList.add('hidden');
-        document.getElementById('pageSender').classList.add('hidden');
-        document.getElementById('pageReceiver').classList.add('hidden');
+    // ระบบเปลี่ยนหน้า
+    function nav(pageName) {
+        // ซ่อนทุกหน้า
+        ['pageMenu', 'pageSender', 'pageReceiver'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.classList.add('hidden');
+        });
 
-        // โชว์หน้าที่เลือก
-        if(p=='menu') document.getElementById('pageMenu').classList.remove('hidden');
-        if(p=='sender') { 
-            document.getElementById('pageSender').classList.remove('hidden'); 
-            loadLockers(); // โหลดข้อมูลตู้
+        // เปิดหน้าที่เลือก
+        if (pageName === 'menu') document.getElementById('pageMenu').classList.remove('hidden');
+        if (pageName === 'sender') {
+            document.getElementById('pageSender').classList.remove('hidden');
+            loadLockers(); // โหลดข้อมูลตู้ใหม่
         }
-        if(p=='receiver') { 
-            document.getElementById('pageReceiver').classList.remove('hidden'); 
-            document.getElementById('resultBox').innerHTML=""; 
-            document.getElementById('sPhone').value="";
+        if (pageName === 'receiver') {
+            document.getElementById('pageReceiver').classList.remove('hidden');
+            document.getElementById('resultBox').innerHTML = ""; // เคลียร์ผลการค้นหาเก่า
+            document.getElementById('sPhone').value = "";
         }
     }
 
-    // โหลดข้อมูลตู้ (ดึงจาก Apps Script)
+    // โหลดข้อมูลตู้
     async function loadLockers() {
         const grid = document.getElementById('lockerGrid');
-        grid.innerHTML = "<p>⏳ กำลังโหลดสถานะตู้...</p>";
+        grid.innerHTML = "<p>⏳ กำลังโหลด...</p>";
+        
         try {
             const res = await fetch(API_URL + "?action=checkStatus");
             const data = await res.json();
             grid.innerHTML = "";
-            data.forEach(x => {
-                let b = document.createElement('button');
-                b.className = `l-btn ${x.status==='Available'?'available':'occupied'}`;
-                b.innerHTML = `ตู้ ${x.locker}<br><span>${x.status==='Available'?'ว่าง':'เต็ม'}</span>`;
-                b.disabled = x.status !== 'Available';
+            
+            data.forEach(item => {
+                let btn = document.createElement('button');
+                let isFree = item.status === 'Available';
                 
-                if(x.status==='Available') {
-                    b.onclick = () => {
-                        selectedLocker = x.locker;
-                        document.getElementById('targetLocker').innerText = x.locker;
+                btn.className = `l-btn ${isFree ? 'available' : 'occupied'}`;
+                btn.innerHTML = `ตู้ ${item.locker}<br><span>${isFree ? 'ว่าง' : 'ไม่ว่าง'}</span>`;
+                btn.disabled = !isFree;
+
+                if (isFree) {
+                    btn.onclick = () => {
+                        selectedLocker = item.locker;
+                        document.getElementById('targetLocker').innerText = item.locker;
                         document.getElementById('reserveForm').classList.remove('hidden');
-                        // เลื่อนหน้าจอลงมาที่ฟอร์ม
                         document.getElementById('reserveForm').scrollIntoView({behavior: 'smooth'});
                     };
                 }
-                grid.appendChild(b);
+                grid.appendChild(btn);
             });
-        } catch(e) { 
-            console.error(e);
-            grid.innerHTML = "<p style='color:red'>โหลดข้อมูลล้มเหลว</p>"; 
+        } catch (error) {
+            console.error(error);
+            grid.innerHTML = "<p style='color:red'>โหลดข้อมูลไม่สำเร็จ</p>";
         }
     }
 
-    // ฟังก์ชันจองตู้
+    // จองตู้
     async function doReserve() {
-        const ph = document.getElementById('rPhone').value;
-        if(ph.length < 4) return alert("กรุณากรอกเบอร์ผู้รับ");
-        
+        const phoneReceiver = document.getElementById('rPhone').value;
+        if (phoneReceiver.length < 4) return alert("กรุณากรอกเบอร์ผู้รับ");
+
         const btn = event.target;
-        const oldText = btn.innerText;
-        btn.innerText = "กำลังบันทึก..."; 
+        btn.innerText = "กำลังบันทึก...";
         btn.disabled = true;
 
         try {
-            await fetch(API_URL, { 
-                method:'POST', 
-                body:JSON.stringify({
-                    action:'reserve', 
-                    locker:selectedLocker, 
-                    phone:ph, 
-                    sender: currentUserPhone 
-                }) 
+            await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'reserve',
+                    locker: selectedLocker,
+                    phone: phoneReceiver,
+                    sender: currentUserPhone
+                })
             });
-            alert("✅ ฝากของสำเร็จ!"); 
+            alert("✅ ฝากของเรียบร้อย!");
             nav('menu');
-        } catch(e) {
+        } catch (error) {
             alert("เกิดข้อผิดพลาด ลองใหม่อีกครั้ง");
         }
-        btn.innerText = oldText; 
+        btn.innerText = "ยืนยันการฝาก";
         btn.disabled = false;
     }
 
-    // ฟังก์ชันค้นหาพัสดุ
+    // ค้นหาพัสดุ
     async function doSearch() {
-        const ph = document.getElementById('sPhone').value;
-        const box = document.getElementById('resultBox');
+        const searchPhone = document.getElementById('sPhone').value;
+        const resultBox = document.getElementById('resultBox');
         
-        if(!ph) return alert("กรุณากรอกเบอร์โทรศัพท์");
+        if (!searchPhone) return alert("กรุณากรอกเบอร์โทรศัพท์");
 
-        box.innerHTML = "🔍 กำลังค้นหา...";
+        resultBox.innerHTML = "🔍 กำลังค้นหา...";
         try {
-            const res = await fetch(`${API_URL}?action=find&phone=${ph}`);
-            const d = await res.json();
-            
-            if(d.found) {
-                box.innerHTML = `
-                    <div style="background:#e8f5e9; padding:15px; border-radius:10px; margin-top:10px; text-align:center;">
-                        <h3 style="color:#2e7d32; margin:0;">🎉 พบพัสดุของท่าน!</h3>
-                        <p style="font-size:18px;">อยู่ที่ <b>ตู้ ${d.locker}</b></p>
-                        <button onclick="doClear('${d.locker}')" class="btn-confirm" style="width:100%; margin-top:10px;">ยืนยันรับของ (เปิดตู้)</button>
+            const res = await fetch(`${API_URL}?action=find&phone=${searchPhone}`);
+            const data = await res.json();
+
+            if (data.found) {
+                resultBox.innerHTML = `
+                    <div style="background:#e8f5e9; padding:15px; border-radius:8px; margin-top:10px; text-align:center;">
+                        <h3 style="color:green; margin:0;">🎉 มีพัสดุถึงคุณ!</h3>
+                        <p style="font-size:1.2em;">อยู่ที่ <b>ตู้ ${data.locker}</b></p>
+                        <button onclick="doClear('${data.locker}')" class="btn-confirm" style="width:100%; margin-top:10px;">เปิดตู้รับของ</button>
                     </div>`;
             } else {
-                box.innerHTML = `<div style="background:#ffebee; padding:15px; border-radius:10px; margin-top:10px; text-align:center; color:#c62828;">❌ ไม่พบพัสดุสำหรับเบอร์นี้</div>`;
+                resultBox.innerHTML = `<div style="background:#ffebee; padding:15px; border-radius:8px; margin-top:10px; text-align:center; color:red;">❌ ไม่พบพัสดุ</div>`;
             }
-        } catch(e) {
-            box.innerHTML = "เกิดข้อผิดพลาด";
+        } catch (error) {
+            resultBox.innerHTML = "เกิดข้อผิดพลาด";
         }
     }
 
-    // ฟังก์ชันเคลียร์ตู้ (รับของ)
-    async function doClear(n) {
-        if(!confirm(`ยืนยันการรับของจากตู้ ${n}?`)) return;
-        
-        await fetch(API_URL, { method:'POST', body:JSON.stringify({action:'clear', locker:n}) });
-        alert("🎉 รับของเรียบร้อย ตู้ว่างแล้ว!"); 
+    // รับของ (เคลียร์ตู้)
+    async function doClear(lockerName) {
+        if (!confirm(`ยืนยันการรับของจากตู้ ${lockerName}?`)) return;
+
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'clear', locker: lockerName })
+        });
+        alert("🎉 รับของสำเร็จ! ตู้ว่างแล้ว");
         nav('menu');
     }
 </script>
