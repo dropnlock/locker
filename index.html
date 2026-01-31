@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Locker System</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* CSS ตกแต่ง */
+        /* CSS ตกแต่ง (คงเดิมไว้ทั้งหมด) */
         body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
         .hidden { display: none !important; }
@@ -94,7 +96,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <script>
-        // 1. Config ของคุณ (ใส่ให้แล้ว)
+        // 1. Config ของคุณ
         const firebaseConfig = {
           apiKey: "AIzaSyDnPenoLXFdVPtUUR3z9lQACAeS6WZcyyU",
           authDomain: "dropnlock-b9699.firebaseapp.com",
@@ -104,23 +106,43 @@
           appId: "1:971185135920:web:f208fe01f1773d257428f5",
           measurementId: "G-JV5HQTG9FB"
         };
-        // URL Google Apps Script เดิม
-        const API_URL = "https://script.google.com/macros/s/AKfycby5p-MrPS_NcSz0GSEcy5FrMfnZRB5MYrw66bWjTGeVBowfd-nXwZTUPlGA_gbS0dQUCg/exec";
+        
+        // ✅ 2. อัปเดต API URL เป็นลิ้งค์ใหม่ของคุณ (ที่แก้แล้ว)
+        const API_URL = "https://script.google.com/macros/s/AKfycbye1eOC3RvzH7LpqtN-ZGdRy2Ege7UcXeTL4bgkae8Qm9mPpdayAVsvcV3ipbTk3VLL/exec";
+        
+        // ✅ 3. ใส่ LIFF ID (เพื่อให้จับตัวคนร้าย/ลูกค้าได้)
+        const LIFF_ID = "2008871806-DD5gVMPU"; 
 
         // เริ่มต้น Firebase
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         auth.languageCode = 'th';
 
-        // 2. ระบบจำรหัส (LINE จำยาว / Web จำสั้น)
-        const isLineApp = /Line/i.test(navigator.userAgent);
-        auth.setPersistence(isLineApp ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION)
-            .catch(e=>console.error("Persistence Error:", e));
-
         // ตัวแปรระบบ
         let confirmationResult = null;
         let currentUserPhone = "";
         let selectedLocker = null;
+        let currentLineUserId = ""; // ✅ ตัวแปรเก็บ ID ลูกค้า
+
+        // --- ✅ 4. เริ่มต้น LIFF (ดักจับ ID) ---
+        async function initLIFF() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    currentLineUserId = profile.userId; // ได้ตัวแล้ว! เก็บไว้ส่งหลังบ้าน
+                    console.log("LINE User ID:", currentLineUserId);
+                } else if (liff.isInClient()) {
+                    liff.login(); // ถ้าเปิดในไลน์แต่ยังไม่ล็อกอิน ก็สั่งล็อกอินเลย
+                }
+            } catch (err) { console.error("LIFF Error:", err); }
+        }
+        initLIFF(); // เรียกทำงานทันทีที่เปิดเว็บ
+
+        // 2. ระบบจำรหัส (LINE จำยาว / Web จำสั้น)
+        const isLineApp = /Line/i.test(navigator.userAgent);
+        auth.setPersistence(isLineApp ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION)
+            .catch(e=>console.error("Persistence Error:", e));
 
         // 3. ตรวจสอบสถานะ (Main Logic)
         auth.onAuthStateChanged((user) => {
@@ -128,8 +150,7 @@
             
             if (user) {
                 // --> ล็อกอินแล้ว
-                currentUserPhone = user.phoneNumber; // เก็บเบอร์เต็มไว้ใช้ (+66xxxx)
-                console.log("Logged in:", currentUserPhone);
+                currentUserPhone = user.phoneNumber; 
                 document.getElementById('welcomeUser').innerText = "ผู้ใช้งาน: " + currentUserPhone;
                 
                 // ซ่อนหน้า Login
@@ -163,26 +184,22 @@
             if(p=='sender') { 
                 document.getElementById('pageSender').classList.remove('hidden'); 
                 loadLockers(); 
-                document.getElementById('rPhone').value = ""; // เคลียร์ช่อง
+                document.getElementById('rPhone').value = ""; 
             }
             
             if(p=='receiver') { 
                 document.getElementById('pageReceiver').classList.remove('hidden'); 
                 document.getElementById('resultBox').innerHTML=""; 
-                
-                // ✅ อัจฉริยะ: ถ้ามีเบอร์ล็อกอินอยู่แล้ว ให้ตัดเอา 4 ตัวท้ายมาใส่ช่องค้นหาเลย
                 if(currentUserPhone && currentUserPhone.length > 4) {
                     document.getElementById('sPhone').value = currentUserPhone.slice(-4);
                 }
             }
         }
 
-        // --- Recaptcha (แก้บั๊กสร้างซ้ำให้แล้ว) ---
+        // --- Recaptcha ---
         function renderRecaptcha() {
             const container = document.getElementById('recaptcha-container');
-            if(container && container.hasChildNodes()) {
-                return; // มีแล้วไม่ต้องสร้างใหม่
-            }
+            if(container && container.hasChildNodes()) return;
             if (!window.recaptchaVerifier) {
                 window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'normal' });
                 window.recaptchaVerifier.render();
@@ -196,8 +213,7 @@
             
             const btn = event.target;
             btn.innerText = "กำลังส่ง..."; btn.disabled = true;
-            
-            renderRecaptcha(); // เช็คอีกทีก่อนส่ง
+            renderRecaptcha(); 
 
             auth.signInWithPhoneNumber(ph, window.recaptchaVerifier).then((res) => {
                 confirmationResult = res;
@@ -247,11 +263,9 @@
             } catch(e) { grid.innerHTML = "Error loading"; }
         }
 
-        // --- จองตู้ (ส่ง 4 ตัวท้าย) ---
+        // --- จองตู้ (ส่ง 4 ตัวท้าย + ✅ ส่ง LINE ID) ---
         async function doReserve() {
             const ph = document.getElementById('rPhone').value;
-            
-            // เช็คว่าเป็นเลข 4 หลักไหม
             if(!/^\d{4}$/.test(ph)) return alert("กรุณากรอกเลข 4 ตัวท้ายให้ถูกต้อง");
             
             const btn = event.target;
@@ -262,8 +276,9 @@
                     body:JSON.stringify({
                         action:'reserve', 
                         locker:selectedLocker, 
-                        phone:ph, // ส่งแค่ 4 ตัวไปเก็บ
-                        sender:currentUserPhone
+                        phone:ph, 
+                        sender:currentUserPhone,
+                        lineId: currentLineUserId // ✅ ส่ง ID ไปด้วย เพื่อแจ้งเตือน!
                     }) 
                 });
                 alert("✅ ฝากของสำเร็จ! (รหัสรับคือ " + ph + ")"); 
@@ -275,7 +290,6 @@
         // --- ค้นหา (ใช้ 4 ตัวท้าย) ---
         async function doSearch() {
             const ph = document.getElementById('sPhone').value;
-            
             if(!/^\d{4}$/.test(ph)) return alert("กรุณากรอกเลข 4 ตัวท้าย");
             
             const box = document.getElementById('resultBox');
