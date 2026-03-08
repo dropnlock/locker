@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* CSS ตกแต่งพื้นฐาน */
         body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; position: relative; }
         .hidden { display: none !important; }
@@ -22,28 +21,14 @@
         .btn:disabled { background: #ccc; cursor: not-allowed; }
         .btn-secondary { background: #6c757d; }
         
-        /* 🎨 อัปเดต CSS Grid ให้เหมือนรูปที่ 3 */
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
-        .l-btn { 
-            padding: 15px 5px; 
-            border-radius: 10px; 
-            font-size: 16px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: transform 0.1s; 
-            background: white; 
-            text-align: center;
-        }
+        .l-btn { padding: 15px 5px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.1s; background: white; text-align: center; }
         .l-btn:active { transform: scale(0.95); }
         
-        /* สไตล์ตู้ว่าง (ขอบเขียว พื้นเขียวอ่อน) */
         .available { border: 2px solid #28a745; color: #28a745; background-color: #e8f5e9; } 
-        /* สไตล์ตู้เต็ม (ขอบแดง พื้นแดงอ่อน) */
         .occupied { border: 2px solid #dc3545; color: #dc3545; background-color: #fce4e4; cursor: not-allowed; opacity: 0.7; }
-        /* สไตล์ตู้กำลังรับ (ขอบเหลือง พื้นเหลืองอ่อน) */
         .pickingup { border: 2px solid #ffc107; color: #b08d00; background-color: #fff8e1; cursor: not-allowed; } 
         
-        /* ปุ่มย้อนกลับมุมซ้ายบน */
         .back-btn { background: none; border: none; color: #888; font-size: 16px; font-weight: bold; cursor: pointer; padding: 0; display: flex; align-items: center; margin-bottom: 15px; }
         .back-btn:hover { color: #555; }
 
@@ -94,28 +79,22 @@
 
         <div id="pageSender" class="hidden">
             <button class="back-btn" onclick="nav('menu')">⬅ กลับ</button>
-            
             <h3>เลือกตู้ที่ว่าง</h3>
             <div id="lockerGrid" class="grid"><div class="loader"></div></div>
             
             <div id="reserveForm" class="hidden" style="margin-top:20px; background:#f8f9fa; padding:15px; border-radius:10px;">
                 <p style="margin:5px 0;">คุณเลือก: <b style="color:#007bff; font-size:1.2em;">ตู้ <span id="targetLocker">-</span></b></p>
-                
                 <p style="font-size:14px; color:#555; margin-bottom:5px;">ระบุเบอร์ผู้รับ (4 ตัวท้าย)</p>
                 <input type="tel" id="rPhone" placeholder="เช่น 1234" maxlength="4" style="font-size: 24px; letter-spacing: 3px; font-weight:bold;">
-                
                 <button class="btn" onclick="doReserve()">ยืนยันการฝาก</button>
             </div>
         </div>
 
         <div id="pageReceiver" class="hidden">
             <button class="back-btn" onclick="nav('menu')">⬅ กลับ</button>
-            
             <h3>🔍 ค้นหาพัสดุ</h3>
             <p>กรอกเลข 4 ตัวท้ายของเบอร์โทร</p>
-            
             <input type="tel" id="sPhone" placeholder="xxxx" maxlength="4" style="font-size: 24px; letter-spacing: 3px; font-weight:bold;">
-            
             <button class="btn" onclick="doSearch()">ค้นหา</button>
             <div id="resultBox" style="margin-top:15px;"></div>
         </div>
@@ -126,14 +105,10 @@
 
     <script>
         // ============================================
-        // ⚙️ ส่วนตั้งค่า
+        // ⚙️ ส่วนตั้งค่า (สมบูรณ์แล้ว ไม่ต้องแก้เพิ่ม)
         // ============================================
-        
-        // ⚠️ ลิงก์ API เดิมของคุณ
         const API_URL = "https://script.google.com/macros/s/AKfycbzvF0hVYVDy69vgpuv8ABKXpkEndhix5JO-HSO_cruVppk41HiPeRfNn-Vq6AU8DK_K/exec";
-        
         const LIFF_ID = "2008871806-gxQPjbvh"; 
-
         const firebaseConfig = {
           apiKey: "AIzaSyD2pT2lhklqjcyhCtnZlKB4mExom8X3SZA",
           authDomain: "locker-project-01.firebaseapp.com",
@@ -143,19 +118,14 @@
           appId: "1:395172693891:web:f4261fd635fb2cc852d8b6",
           measurementId: "G-63FCGRHW6J"
         };
-        
         // ============================================
 
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         auth.languageCode = 'th';
 
-        let confirmationResult = null;
-        let currentUserPhone = "";
-        let selectedLocker = null;
-        let currentLineUserId = ""; 
+        let confirmationResult = null, currentUserPhone = "", selectedLocker = null, currentLineUserId = ""; 
 
-        // --- 🚀 เริ่มต้น LIFF ---
         async function initLIFF() {
             try {
                 await liff.init({ liffId: LIFF_ID });
@@ -163,47 +133,33 @@
                     const profile = await liff.getProfile();
                     currentLineUserId = profile.userId;
                     updateLiffStatus(true, profile.displayName);
-                    console.log("LINE ID:", currentLineUserId);
                 } else {
-                    if (liff.isInClient()) {
-                        liff.login();
-                    } else {
-                        updateLiffStatus(false);
-                    }
+                    if (liff.isInClient()) liff.login();
+                    else updateLiffStatus(false);
                 }
-            } catch (err) { 
-                console.error("LIFF Error:", err);
-                updateLiffStatus(false);
-            }
+            } catch (err) { updateLiffStatus(false); }
         }
         
         function updateLiffStatus(isLoggedIn, name = "") {
             const msg = isLoggedIn ? `✅ เชื่อมต่อ LINE: ${name}` : `⚠️ ไม่ได้เชื่อมต่อ LINE (จะไม่ได้รับแจ้งเตือน)`;
-            const className = isLoggedIn ? "liff-ok" : "";
-            
             const elLogin = document.getElementById('liffStatusLogin');
             const elMenu = document.getElementById('liffStatusMenu');
-            
-            if(elLogin) { elLogin.innerText = msg; elLogin.className = "liff-status " + className; }
-            if(elMenu) { elMenu.innerText = msg; elMenu.className = "liff-status " + className; }
+            if(elLogin) { elLogin.innerText = msg; elLogin.className = "liff-status " + (isLoggedIn?"liff-ok":""); }
+            if(elMenu) { elMenu.innerText = msg; elMenu.className = "liff-status " + (isLoggedIn?"liff-ok":""); }
         }
 
         initLIFF(); 
 
-        // --- Firebase Auth Logic ---
         const isLineApp = /Line/i.test(navigator.userAgent);
-        auth.setPersistence(isLineApp ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION)
-            .catch(e=>console.error("Persistence Error:", e));
+        auth.setPersistence(isLineApp ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
 
         auth.onAuthStateChanged((user) => {
             const allPages = ['pageLogin', 'pageOTP', 'pageMenu', 'pageSender', 'pageReceiver'];
             if (user) {
                 currentUserPhone = user.phoneNumber; 
                 document.getElementById('welcomeUser').innerText = "ผู้ใช้งาน: " + currentUserPhone;
-                
                 document.getElementById('pageLogin').classList.add('hidden');
                 document.getElementById('pageOTP').classList.add('hidden');
-                
                 checkDeepLink();
             } else {
                 allPages.forEach(id => document.getElementById(id)?.classList.add('hidden'));
@@ -214,24 +170,20 @@
 
         function checkDeepLink() {
             const params = new URLSearchParams(window.location.search);
-            const page = params.get('page');
-            if (page === 'sender') nav('sender');
-            else if (page === 'receiver') nav('receiver');
+            if (params.get('page') === 'sender') nav('sender');
+            else if (params.get('page') === 'receiver') nav('receiver');
             else nav('menu');
         }
 
         function nav(p) {
             ['pageMenu', 'pageSender', 'pageReceiver'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            
             if(p=='menu') document.getElementById('pageMenu').classList.remove('hidden');
-            
             if(p=='sender') { 
                 document.getElementById('pageSender').classList.remove('hidden'); 
                 loadLockers(); 
                 document.getElementById('rPhone').value = ""; 
-                document.getElementById('reserveForm').classList.add('hidden'); // ซ่อนฟอร์มจองไว้ก่อน
+                document.getElementById('reserveForm').classList.add('hidden');
             }
-            
             if(p=='receiver') { 
                 document.getElementById('pageReceiver').classList.remove('hidden'); 
                 document.getElementById('resultBox').innerHTML=""; 
@@ -253,7 +205,6 @@
         function sendOTP() {
             const ph = document.getElementById('loginPhone').value;
             if (ph.length < 10) return alert("กรุณากรอกเบอร์ให้ครบ");
-            
             const btn = event.target;
             btn.innerText = "กำลังส่ง..."; btn.disabled = true;
             renderRecaptcha(); 
@@ -262,7 +213,6 @@
                 confirmationResult = res;
                 document.getElementById('pageLogin').classList.add('hidden');
                 document.getElementById('pageOTP').classList.remove('hidden');
-                alert("✅ ส่ง OTP แล้ว");
                 btn.innerText = "รับรหัส OTP"; btn.disabled = false;
             }).catch(e => { 
                 alert("Error: " + e.message); 
@@ -281,45 +231,32 @@
             if(confirm("ออกจากระบบ?")) auth.signOut().then(() => window.location.href = window.location.pathname);
         }
 
-        // --- 1. ฟังก์ชันลงทะเบียน (Register) ---
         async function registerMember() {
             const ph = document.getElementById('regPhone').value;
             if(!/^\d{4}$/.test(ph)) return alert("กรุณากรอกเลข 4 ตัวท้ายให้ครบ");
             if(!currentLineUserId) return alert("⚠️ ไม่พบ LINE ID\nกรุณาเปิดลิงก์นี้ผ่านแอป LINE เพื่อลงทะเบียน");
-            
             const btn = event.target;
             btn.innerText = "กำลังบันทึก..."; btn.disabled = true;
 
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    body: JSON.stringify({
-                        action: 'register',
-                        pin: ph, 
-                        lineId: currentLineUserId 
-                    })
+                    body: JSON.stringify({ action: 'register', pin: ph, lineId: currentLineUserId })
                 });
                 const result = await response.json();
                 if(result.status === "success") {
                     alert("✅ ลงทะเบียนสำเร็จ!\nเมื่อมีคนฝากของให้รหัส " + ph + " ระบบจะแจ้งเตือนคุณทันที");
                     document.getElementById('regPhone').value = ""; 
-                } else {
-                    alert("❌ " + result.message);
-                }
-            } catch(e) {
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
-            }
+                } else alert("❌ " + result.message);
+            } catch(e) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
             btn.innerText = "ยืนยันลงทะเบียน"; btn.disabled = false;
         }
 
-        // --- 2. โหลดตู้ (ปรับแต่งปุ่มให้เหมือนรูปที่ 3) ---
         async function loadLockers() {
             const grid = document.getElementById('lockerGrid');
             grid.innerHTML = '<div class="loader"></div>';
             try {
                 const res = await fetch(API_URL + "?action=checkStatus");
-                
-                // ถ้าระบบส่ง HTML Error กลับมา (ไม่ใช่ JSON)
                 if (!res.ok) throw new Error("Network response was not ok");
 
                 const data = await res.json();
@@ -330,17 +267,13 @@
                     let isFree = x.status === 'Available';
                     let isPickingUp = x.status === 'PickingUp';
                     
-                    // ปรับแต่ง CSS Class ตามสถานะ (เพิ่ม PickingUp)
                     if (isFree) btn.className = 'l-btn available';
                     else if (isPickingUp) btn.className = 'l-btn pickingup';
                     else btn.className = 'l-btn occupied';
 
                     let statusText = isFree ? 'ว่าง' : (isPickingUp ? 'รอมารับ' : 'เต็ม');
-                    
-                    // ปรับ HTML ให้ข้อความตู้และสถานะอยู่กลางปุ่ม
                     btn.innerHTML = `ตู้ ${x.locker}<br><span style="font-size:0.9em; font-weight:normal;">${statusText}</span>`;
-                    
-                    btn.disabled = !isFree; // ปิดปุ่มถ้าไม่ว่าง
+                    btn.disabled = !isFree; 
                     
                     if(isFree) btn.onclick = () => {
                         selectedLocker = x.locker;
@@ -351,48 +284,33 @@
                     grid.appendChild(btn);
                 });
             } catch(e) { 
-                console.error("Fetch Error:", e);
-                grid.innerHTML = `<div style="grid-column: span 3; color: red;"><b>Error loading!</b><br>ไม่สามารถดึงข้อมูลตู้ได้<br>โปรดตรวจสอบ API_URL และการตั้งค่า Google Sheets</div>`;
+                grid.innerHTML = `<div style="grid-column: span 3; color: red;"><b>Error loading!</b><br>ไม่สามารถดึงข้อมูลตู้ได้ โปรดตรวจสอบสิทธิ์ Google Sheets</div>`;
             }
         }
 
-        // --- 3. ฝากของ (Reserve) ---
         async function doReserve() {
             const ph = document.getElementById('rPhone').value;
             if(!/^\d{4}$/.test(ph)) return alert("กรุณากรอกเลข 4 ตัวท้ายให้ถูกต้อง");
-            
             const btn = event.target;
             btn.innerText = "กำลังบันทึก..."; btn.disabled = true;
-            
-            const payload = {
-                action: 'reserve', 
-                locker: selectedLocker, 
-                pin: ph, 
-                lineId: currentLineUserId 
-            };
 
             try {
                 const res = await fetch(API_URL, { 
                     method:'POST', 
-                    body: JSON.stringify(payload) 
+                    body: JSON.stringify({ action: 'reserve', locker: selectedLocker, pin: ph, lineId: currentLineUserId }) 
                 });
                 const result = await res.json();
                 if(result.status === "success") {
                     alert("✅ ฝากของสำเร็จ!\nตู้กำลังเปิด... กรุณาใส่ของและปิดตู้ให้สนิท"); 
                     nav('menu');
-                } else {
-                    alert("❌ " + result.message);
-                }
+                } else alert("❌ " + result.message);
             } catch(e) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
-            
             btn.innerText = "ยืนยันการฝาก"; btn.disabled = false;
         }
 
-        // --- 4. ค้นหาพัสดุ ---
         async function doSearch() {
             const ph = document.getElementById('sPhone').value;
             if(!/^\d{4}$/.test(ph)) return alert("กรุณากรอกเลข 4 ตัวท้าย");
-            
             const box = document.getElementById('resultBox');
             box.innerHTML = "🔍 กำลังค้นหา...";
             try {
@@ -400,13 +318,10 @@
                 const data = await res.json();
                 if(data.found) {
                     box.innerHTML = `<div style="background:#d4edda; padding:15px; border-radius:10px;"><h3>🎉 พบพัสดุ!</h3><p>ตู้ ${data.locker}</p><button class="btn" onclick="doClear('${data.locker}')">เปิดตู้รับของ</button></div>`;
-                } else {
-                    box.innerHTML = `<div style="background:#f8d7da; padding:15px; border-radius:10px; color:red;">❌ ไม่พบพัสดุ (สำหรับรหัส ${ph})</div>`;
-                }
+                } else box.innerHTML = `<div style="background:#f8d7da; padding:15px; border-radius:10px; color:red;">❌ ไม่พบพัสดุ (สำหรับรหัส ${ph})</div>`;
             } catch(e) { box.innerHTML = "Error"; }
         }
 
-        // --- 5. รับของ ---
         async function doClear(n) {
             if(!confirm("ยืนยันการรับของ? (ตู้จะเปิดทันที)")) return;
             try {
