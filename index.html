@@ -105,7 +105,7 @@
 
     <script>
         // ============================================
-        // ⚙️ ส่วนตั้งค่า (สมบูรณ์แล้ว ไม่ต้องแก้เพิ่ม)
+        // ⚙️ ส่วนตั้งค่า
         // ============================================
         const API_URL = "https://script.google.com/macros/s/AKfycbyu8b4l9qVLg95Fq-_6Wzz3_1eCNaKgE3n3PBArWOlzeP8FzSszCbzjhD70ZwH6BzMGMw/exec";
         const LIFF_ID = "2008871806-gxQPjbvh"; 
@@ -188,7 +188,7 @@
                 document.getElementById('pageReceiver').classList.remove('hidden'); 
                 document.getElementById('resultBox').innerHTML=""; 
                 
-                // แปลงเบอร์ +66... ของ Firebase ให้เป็น 08... แบบไทย
+                // อัพเดต: ดึงเบอร์เต็มมาแสดง (โดยแปลงเบอร์ไทย +66 เป็น 0)
                 if(currentUserPhone) {
                     let localPhone = currentUserPhone;
                     if (localPhone.startsWith("+66")) {
@@ -239,7 +239,7 @@
 
         async function registerMember() {
             const ph = document.getElementById('regPhone').value;
-            // เช็คว่ากรอกครบ 10 ตัวหรือยัง
+            // อัพเดต: เช็ค regex สำหรับ 10 หลัก
             if(!/^\d{10}$/.test(ph)) return alert("กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก");
             if(!currentLineUserId) return alert("⚠️ ไม่พบ LINE ID\nกรุณาเปิดลิงก์นี้ผ่านแอป LINE เพื่อลงทะเบียน");
             const btn = event.target;
@@ -297,7 +297,7 @@
 
         async function doReserve() {
             const ph = document.getElementById('rPhone').value;
-            // เช็คว่าไรเดอร์กรอกครบ 10 ตัวหรือยัง
+            // อัพเดต: เช็ค regex สำหรับ 10 หลัก
             if(!/^\d{10}$/.test(ph)) return alert("กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก");
             const btn = event.target;
             btn.innerText = "กำลังบันทึก..."; btn.disabled = true;
@@ -318,7 +318,7 @@
 
         async function doSearch() {
             const ph = document.getElementById('sPhone').value;
-            // เช็คว่าลูกค้ากรอกครบ 10 ตัวหรือยัง
+            // อัพเดต: เช็ค regex สำหรับ 10 หลัก
             if(!/^\d{10}$/.test(ph)) return alert("กรุณากรอกเบอร์โทรศัพท์ 10 หลัก");
             const box = document.getElementById('resultBox');
             box.innerHTML = "🔍 กำลังค้นหา...";
