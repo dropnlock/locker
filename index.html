@@ -5,843 +5,343 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Locker System</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
-        :root {
-            --green: #06c755;
-            --green-dark: #04a844;
-            --blue: #0071e3;
-            --blue-dark: #0060c7;
-            --red: #dc3545;
-            --yellow: #f59e0b;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-400: #9ca3af;
-            --gray-600: #4b5563;
-            --gray-800: #1f2937;
-            --radius: 14px;
-            --shadow: 0 4px 24px rgba(0,0,0,0.08);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Sarabun', sans-serif;
-            background: linear-gradient(135deg, #e8f5ff 0%, #f0f9f4 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            width: 100%;
-            max-width: 420px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Header strip */
-        .page-header {
-            background: linear-gradient(135deg, #06c755, #04a844);
-            padding: 20px 24px 16px;
-            color: white;
-            text-align: center;
-        }
-        .page-header .icon { font-size: 32px; display: block; margin-bottom: 4px; }
-        .page-header h2 { font-size: 20px; font-weight: 700; margin: 0; }
-        .page-header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
-
-        .page-body { padding: 24px; }
-
+        body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; position: relative; }
         .hidden { display: none !important; }
-
-        /* Inputs */
-        .input-group { margin-bottom: 14px; }
-        .input-group label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; }
-        input[type="tel"], input[type="text"] {
-            width: 100%;
-            padding: 13px 16px;
-            border: 1.5px solid var(--gray-200);
-            border-radius: var(--radius);
-            font-size: 16px;
-            font-family: 'Sarabun', sans-serif;
-            color: var(--gray-800);
-            transition: border-color 0.2s, box-shadow 0.2s;
-            background: var(--gray-50);
-            text-align: center;
-        }
-        input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(6,199,85,0.12); background: white; }
-        input.otp-input { letter-spacing: 8px; font-size: 24px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
-
-        /* Buttons */
-        .btn {
-            width: 100%;
-            padding: 14px 16px;
-            border: none;
-            border-radius: var(--radius);
-            font-size: 15px;
-            font-weight: 700;
-            font-family: 'Sarabun', sans-serif;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn:active { transform: scale(0.98); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        .btn-primary { background: var(--green); color: white; }
-        .btn-primary:hover:not(:disabled) { background: var(--green-dark); box-shadow: 0 4px 12px rgba(6,199,85,0.35); }
-
-        .btn-blue { background: var(--blue); color: white; }
-        .btn-blue:hover:not(:disabled) { background: var(--blue-dark); box-shadow: 0 4px 12px rgba(0,113,227,0.3); }
-
-        .btn-gray { background: var(--gray-100); color: var(--gray-600); }
-        .btn-gray:hover:not(:disabled) { background: var(--gray-200); }
-
-        .btn-yellow { background: #fef3c7; color: #92400e; border: 1.5px solid #fcd34d; }
-        .btn-yellow:hover:not(:disabled) { background: #fde68a; }
-
-        .btn-red { background: #fee2e2; color: #991b1b; }
-        .btn-red:hover:not(:disabled) { background: #fecaca; }
-
-        .btn + .btn { margin-top: 10px; }
-
-        /* Menu buttons */
-        .menu-card {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 18px 20px;
-            background: var(--gray-50);
-            border: 1.5px solid var(--gray-200);
-            border-radius: var(--radius);
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-            width: 100%;
-            font-family: 'Sarabun', sans-serif;
-        }
-        .menu-card:hover { border-color: var(--green); background: #f0fdf4; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(6,199,85,0.12); }
-        .menu-card .icon { font-size: 28px; flex-shrink: 0; }
-        .menu-card .title { font-size: 16px; font-weight: 700; color: var(--gray-800); }
-        .menu-card .desc { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
-
-        /* Back button */
-        .back-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: none;
-            border: none;
-            color: var(--gray-400);
-            font-size: 14px;
-            font-family: 'Sarabun', sans-serif;
-            cursor: pointer;
-            padding: 0;
-            margin-bottom: 16px;
-            font-weight: 600;
-            transition: color 0.2s;
-        }
-        .back-btn:hover { color: var(--gray-800); }
-
-        /* Section title */
-        .section-title { font-size: 18px; font-weight: 700; color: var(--gray-800); margin-bottom: 4px; }
-        .section-sub { font-size: 13px; color: var(--gray-400); margin-bottom: 20px; }
-
-        /* Locker grid */
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-        .l-btn {
-            padding: 14px 6px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 700;
-            font-family: 'Sarabun', sans-serif;
-            cursor: pointer;
-            transition: all 0.15s;
-            text-align: center;
-            border: 2px solid;
-            line-height: 1.4;
-        }
+        
+        h2 { margin-top: 0; color: #333; }
+        h3 { color: #000; font-size: 22px; margin-bottom: 20px;}
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; text-align: center; }
+        
+        .btn { width: 100%; padding: 12px; background: #06c755; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; font-weight: bold; transition: 0.3s; }
+        .btn:hover { background: #05b34c; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-secondary { background: #6c757d; }
+        
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+        .l-btn { padding: 15px 5px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.1s; background: white; text-align: center; }
         .l-btn:active { transform: scale(0.95); }
-        .available { border-color: var(--green); color: var(--green); background: #f0fdf4; }
-        .available:hover { background: #dcfce7; box-shadow: 0 4px 10px rgba(6,199,85,0.2); }
-        .occupied { border-color: var(--gray-200); color: var(--gray-400); background: var(--gray-50); cursor: not-allowed; opacity: 0.6; }
-        .pickingup { border-color: var(--yellow); color: #92400e; background: #fffbeb; cursor: not-allowed; }
+        
+        .available { border: 2px solid #28a745; color: #28a745; background-color: #e8f5e9; } 
+        .occupied { border: 2px solid #dc3545; color: #dc3545; background-color: #fce4e4; cursor: not-allowed; opacity: 0.7; }
+        .pickingup { border: 2px solid #ffc107; color: #b08d00; background-color: #fff8e1; cursor: not-allowed; } 
+        
+        .back-btn { background: none; border: none; color: #888; font-size: 16px; font-weight: bold; cursor: pointer; padding: 0; display: flex; align-items: center; margin-bottom: 15px; }
+        .back-btn:hover { color: #555; }
 
-        /* Reserve form */
-        .reserve-form {
-            background: #f0fdf4;
-            border: 1.5px solid #bbf7d0;
-            border-radius: var(--radius);
-            padding: 16px;
-            margin-top: 4px;
-        }
-        .reserve-form .locker-label {
-            font-size: 13px;
-            color: var(--gray-600);
-            margin-bottom: 8px;
-        }
-        .reserve-form .locker-number {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--green);
-            font-family: 'IBM Plex Mono', monospace;
-        }
-
-        /* Register box */
-        .register-box {
-            background: #fffbeb;
-            border: 1.5px solid #fcd34d;
-            border-radius: var(--radius);
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-        .register-box .reg-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #92400e;
-            margin-bottom: 10px;
-        }
-
-        /* User info bar */
-        .user-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--gray-50);
-            border-radius: 10px;
-            padding: 10px 14px;
-            margin-bottom: 20px;
-            border: 1px solid var(--gray-200);
-        }
-        .user-bar .phone { font-size: 13px; font-weight: 600; color: var(--gray-800); font-family: 'IBM Plex Mono', monospace; }
-        .user-bar .line-status { font-size: 11px; }
-        .line-ok { color: var(--green); font-weight: 600; }
-        .line-warn { color: var(--yellow); font-weight: 600; }
-
-        /* Result box */
-        .result-success {
-            background: #f0fdf4;
-            border: 1.5px solid #86efac;
-            border-radius: var(--radius);
-            padding: 20px;
-            text-align: center;
-        }
-        .result-success .result-icon { font-size: 36px; margin-bottom: 8px; }
-        .result-success .result-title { font-size: 17px; font-weight: 700; color: var(--gray-800); margin-bottom: 4px; }
-        .result-success .result-locker { font-size: 32px; font-weight: 700; color: var(--green); font-family: 'IBM Plex Mono', monospace; margin: 8px 0 16px; }
-
-        .result-error {
-            background: #fef2f2;
-            border: 1.5px solid #fca5a5;
-            border-radius: var(--radius);
-            padding: 20px;
-            text-align: center;
-            color: var(--red);
-        }
-
-        /* Loader */
-        .loader {
-            border: 3px solid var(--gray-200);
-            border-top: 3px solid var(--green);
-            border-radius: 50%;
-            width: 28px; height: 28px;
-            animation: spin 0.8s linear infinite;
-            margin: 20px auto;
-        }
-        .loader-inline {
-            display: inline-block;
-            border: 2px solid rgba(255,255,255,0.4);
-            border-top: 2px solid white;
-            border-radius: 50%;
-            width: 16px; height: 16px;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: var(--gray-800);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 600;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 1000;
-            white-space: nowrap;
-            pointer-events: none;
-        }
-        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-        /* Recaptcha */
-        #recaptcha-container { display: flex; justify-content: center; margin: 12px 0; }
-
-        /* Divider */
-        .divider { border: none; border-top: 1px solid var(--gray-200); margin: 20px 0; }
-
-        /* Page transitions */
-        .page { animation: fadeIn 0.2s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Loading overlay */
-        .loading-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(255,255,255,0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 20px;
-            z-index: 100;
-        }
+        .menu-btn { background: #007bff; margin-bottom: 15px; padding: 15px; font-size: 18px; }
+        .liff-status { font-size: 12px; color: gray; margin-top: 10px; }
+        .liff-ok { color: #06c755; font-weight: bold; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .register-box { background: #fff3cd; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ffeeba; }
     </style>
 </head>
 <body>
 
-<div class="container" id="mainContainer">
-
-    <!-- ===== LOGIN PAGE ===== -->
-    <div id="pageLogin" class="page">
-        <div class="page-header">
-            <span class="icon">📦</span>
-            <h2>Smart Locker</h2>
-            <p>เข้าสู่ระบบด้วยเบอร์โทรศัพท์</p>
+    <div class="container">
+        <div id="pageLogin">
+            <h2>🔐 เข้าสู่ระบบ</h2>
+            <p>กรุณากรอกเบอร์โทรศัพท์เพื่อรับ OTP</p>
+            <input type="tel" id="loginPhone" placeholder="+66xxxxxxxxx" value="+66">
+            <div id="recaptcha-container" style="margin: 10px auto;"></div>
+            <button class="btn" onclick="sendOTP()">📩 รับรหัส OTP</button>
+            <div id="liffStatusLogin" class="liff-status">กำลังเชื่อมต่อ LINE...</div>
         </div>
-        <div class="page-body">
-            <div class="input-group">
-                <label>เบอร์โทรศัพท์</label>
-                <input type="tel" id="loginPhone" placeholder="+66812345678" value="+66">
-            </div>
-            <div id="recaptcha-container"></div>
-            <button class="btn btn-primary" onclick="sendOTP(this)">
-                <span>📩 รับรหัส OTP</span>
-            </button>
-            <div id="liffStatusLogin" class="line-warn" style="text-align:center; font-size:12px; margin-top:14px;">⏳ กำลังเชื่อมต่อ LINE...</div>
-        </div>
-    </div>
 
-    <!-- ===== OTP PAGE ===== -->
-    <div id="pageOTP" class="page hidden">
-        <div class="page-header" style="background: linear-gradient(135deg, #0071e3, #0060c7);">
-            <span class="icon">📱</span>
-            <h2>ยืนยัน OTP</h2>
+        <div id="pageOTP" class="hidden">
+            <h2>📱 ยืนยันรหัส OTP</h2>
             <p>กรอกรหัส 6 หลักที่ได้รับทาง SMS</p>
+            <input type="text" id="otpInput" placeholder="123456" maxlength="6" style="letter-spacing: 5px; font-size: 20px;">
+            <button class="btn" onclick="verifyOTP()">ยืนยัน</button>
+            <button class="btn btn-secondary" onclick="location.reload()">ย้อนกลับ</button>
         </div>
-        <div class="page-body">
-            <div class="input-group">
-                <label>รหัส OTP</label>
-                <input type="text" id="otpInput" class="otp-input" placeholder="• • • • • •" maxlength="6">
-            </div>
-            <button class="btn btn-blue" onclick="verifyOTP(this)">
-                <span>✅ ยืนยัน</span>
-            </button>
-            <button class="btn btn-gray" onclick="location.reload()" style="margin-top:10px;">
-                ← ย้อนกลับ
-            </button>
-        </div>
-    </div>
 
-    <!-- ===== MENU PAGE ===== -->
-    <div id="pageMenu" class="page hidden">
-        <div class="page-header">
-            <span class="icon">📦</span>
-            <h2>Smart Locker</h2>
-            <p>ระบบจัดการตู้พัสดุอัจฉริยะ</p>
-        </div>
-        <div class="page-body">
-            <div class="user-bar">
-                <div>
-                    <div class="phone" id="welcomeUser">—</div>
-                    <div id="liffStatusMenu" class="line-warn" style="font-size:11px; margin-top:2px;">⏳ กำลังเชื่อมต่อ LINE...</div>
-                </div>
-                <button class="btn btn-gray" onclick="logout()" style="width:auto; padding:8px 14px; font-size:13px;">ออก</button>
-            </div>
-
+        <div id="pageMenu" class="hidden">
+            <h2>📦 Smart Locker</h2>
+            <p id="welcomeUser" style="color:#666; font-size:14px; margin-bottom: 5px;">ยินดีต้อนรับ</p>
+            <p id="liffStatusMenu" class="liff-status" style="margin-bottom: 20px;">...</p>
+            
             <div class="register-box">
-                <div class="reg-title">🔔 ลงทะเบียนรับแจ้งเตือนผ่าน LINE</div>
-                <div class="input-group" style="margin-bottom:10px;">
-                    <input type="tel" id="regPhone" placeholder="0812345678" maxlength="10">
-                </div>
-                <button class="btn btn-yellow" onclick="registerMember(this)">ยืนยันลงทะเบียน</button>
+                <p style="margin:0 0 10px 0; font-size:14px; color:#856404; font-weight:bold;">🔔 ลงทะเบียนรับแจ้งเตือนผ่าน LINE</p>
+                <input type="tel" id="regPhone" placeholder="กรอกเบอร์โทรศัพท์ (10 หลัก)" maxlength="10" style="background:white; letter-spacing: 2px;">
+                <button class="btn" style="background:#ffc107; color:black;" onclick="registerMember()">ยืนยันลงทะเบียน</button>
             </div>
+            <button class="btn menu-btn" onclick="nav('sender')">📦 ฝากของ / จองตู้</button>
+            <button class="btn menu-btn" style="background:#17a2b8;" onclick="nav('receiver')">🔍 ค้นหาพัสดุ / รับของ</button>
+            
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+            <button class="btn btn-secondary" onclick="logout()">ออกจากระบบ</button>
+        </div>
 
-            <button class="menu-card" onclick="nav('sender')">
-                <span class="icon">📥</span>
-                <div>
-                    <div class="title">ฝากของ / จองตู้</div>
-                    <div class="desc">เลือกตู้ที่ว่างและระบุผู้รับ</div>
-                </div>
-            </button>
+        <div id="pageSender" class="hidden">
+            <button class="back-btn" onclick="nav('menu')">⬅ กลับ</button>
+            <h3>เลือกตู้ที่ว่าง</h3>
+            <div id="lockerGrid" class="grid"><div class="loader"></div></div>
+            
+            <div id="reserveForm" class="hidden" style="margin-top:20px; background:#f8f9fa; padding:15px; border-radius:10px;">
+                <p style="margin:5px 0;">คุณเลือก: <b style="color:#007bff; font-size:1.2em;">ตู้ <span id="targetLocker">-</span></b></p>
+                <p style="font-size:14px; color:#555; margin-bottom:5px;">ระบุเบอร์ผู้รับ (10 หลัก)</p>
+                <input type="tel" id="rPhone" placeholder="เช่น 0812345678" maxlength="10" style="font-size: 20px; letter-spacing: 2px; font-weight:bold;">
+                <button class="btn" onclick="doReserve()">ยืนยันการฝาก</button>
+            </div>
+        </div>
 
-            <button class="menu-card" onclick="nav('receiver')" style="border-color: var(--gray-200);">
-                <span class="icon">🔍</span>
-                <div>
-                    <div class="title">ค้นหาพัสดุ / รับของ</div>
-                    <div class="desc">ค้นหาด้วยเบอร์โทรศัพท์</div>
-                </div>
-            </button>
+        <div id="pageReceiver" class="hidden">
+            <button class="back-btn" onclick="nav('menu')">⬅ กลับ</button>
+            <h3>🔍 ค้นหาพัสดุ</h3>
+            <p>กรอกเบอร์โทรศัพท์ 10 หลัก</p>
+            <input type="tel" id="sPhone" placeholder="08xxxxxxxx" maxlength="10" style="font-size: 20px; letter-spacing: 2px; font-weight:bold;">
+            <button class="btn" onclick="doSearch()">ค้นหา</button>
+            <div id="resultBox" style="margin-top:15px;"></div>
         </div>
     </div>
 
-    <!-- ===== SENDER PAGE ===== -->
-    <div id="pageSender" class="page hidden">
-        <div class="page-header">
-            <span class="icon">📥</span>
-            <h2>เลือกตู้ที่ว่าง</h2>
-            <p>กดตู้สีเขียวเพื่อเลือก</p>
-        </div>
-        <div class="page-body">
-            <button class="back-btn" onclick="nav('menu')">← กลับหน้าหลัก</button>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-            <div id="lockerGrid" class="grid">
-                <div style="grid-column: span 3; text-align:center;"><div class="loader"></div></div>
-            </div>
+    <script>
+        // ============================================
+        // ⚙️ ส่วนตั้งค่า (สมบูรณ์แล้ว ไม่ต้องแก้เพิ่ม)
+        // ============================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbyu8b4l9qVLg95Fq-_6Wzz3_1eCNaKgE3n3PBArWOlzeP8FzSszCbzjhD70ZwH6BzMGMw/exec";
+        const LIFF_ID = "2008871806-gxQPjbvh"; 
+        const firebaseConfig = {
+          apiKey: "AIzaSyD2pT2lhklqjcyhCtnZlKB4mExom8X3SZA",
+          authDomain: "locker-project-01.firebaseapp.com",
+          projectId: "locker-project-01",
+          storageBucket: "locker-project-01.firebasestorage.app",
+          messagingSenderId: "395172693891",
+          appId: "1:395172693891:web:f4261fd635fb2cc852d8b6",
+          measurementId: "G-63FCGRHW6J"
+        };
+        // ============================================
 
-            <div id="reserveForm" class="reserve-form hidden">
-                <div class="locker-label">ตู้ที่เลือก</div>
-                <div class="locker-number">ตู้ <span id="targetLocker">-</span></div>
-                <div class="input-group" style="margin-top:14px; margin-bottom:0;">
-                    <label>เบอร์โทรผู้รับ (10 หลัก)</label>
-                    <input type="tel" id="rPhone" placeholder="0812345678" maxlength="10">
-                </div>
-                <button class="btn btn-primary" onclick="doReserve(this)" style="margin-top:12px;">✅ ยืนยันการฝาก</button>
-            </div>
-        </div>
-    </div>
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        auth.languageCode = 'th';
 
-    <!-- ===== RECEIVER PAGE ===== -->
-    <div id="pageReceiver" class="page hidden">
-        <div class="page-header" style="background: linear-gradient(135deg, #0071e3, #0060c7);">
-            <span class="icon">🔍</span>
-            <h2>ค้นหาพัสดุ</h2>
-            <p>กรอกเบอร์โทรศัพท์ของผู้รับ</p>
-        </div>
-        <div class="page-body">
-            <button class="back-btn" onclick="nav('menu')">← กลับหน้าหลัก</button>
+        let confirmationResult = null, currentUserPhone = "", selectedLocker = null, currentLineUserId = ""; 
 
-            <div class="input-group">
-                <label>เบอร์โทรศัพท์ (10 หลัก)</label>
-                <input type="tel" id="sPhone" placeholder="0812345678" maxlength="10">
-            </div>
-            <button class="btn btn-blue" onclick="doSearch(this)">🔍 ค้นหา</button>
-
-            <div id="resultBox" style="margin-top:16px;"></div>
-        </div>
-    </div>
-
-</div>
-
-<!-- Toast notification -->
-<div class="toast" id="toast"></div>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-
-<script>
-    // ============================================================
-    // ⚙️ CONFIG
-    // ============================================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbyu8b4l9qVLg95Fq-_6Wzz3_1eCNaKgE3n3PBArWOlzeP8FzSszCbzjhD70ZwH6BzMGMw/exec";
-    const LIFF_ID = "2008871806-gxQPjbvh";
-    const firebaseConfig = {
-        apiKey: "AIzaSyD2pT2lhklqjcyhCtnZlKB4mExom8X3SZA",
-        authDomain: "locker-project-01.firebaseapp.com",
-        projectId: "locker-project-01",
-        storageBucket: "locker-project-01.firebasestorage.app",
-        messagingSenderId: "395172693891",
-        appId: "1:395172693891:web:f4261fd635fb2cc852d8b6",
-        measurementId: "G-63FCGRHW6J"
-    };
-    const FETCH_TIMEOUT_MS = 12000;
-    // ============================================================
-
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    auth.languageCode = 'th';
-
-    let confirmationResult = null;
-    let currentUserPhone = "";
-    let selectedLocker = null;
-    let currentLineUserId = "";
-    let recaptchaInitialized = false;
-
-    // ============================================================
-    // TOAST
-    // ============================================================
-    function showToast(msg, duration = 2800) {
-        const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), duration);
-    }
-
-    // ============================================================
-    // FETCH WITH TIMEOUT
-    // ============================================================
-    async function fetchWithTimeout(url, options = {}, ms = FETCH_TIMEOUT_MS) {
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), ms);
-        try {
-            const res = await fetch(url, { ...options, signal: controller.signal });
-            clearTimeout(id);
-            return res;
-        } catch (err) {
-            clearTimeout(id);
-            if (err.name === 'AbortError') throw new Error('การเชื่อมต่อหมดเวลา กรุณาลองใหม่');
-            throw err;
+        async function initLIFF() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    currentLineUserId = profile.userId;
+                    updateLiffStatus(true, profile.displayName);
+                } else {
+                    if (liff.isInClient()) liff.login();
+                    else updateLiffStatus(false);
+                }
+            } catch (err) { updateLiffStatus(false); }
         }
-    }
-
-    // ============================================================
-    // BUTTON LOADING STATE HELPERS
-    // ============================================================
-    function setLoading(btn, loading, originalHTML) {
-        if (!btn) return;
-        if (loading) {
-            btn.disabled = true;
-            btn.dataset.original = btn.innerHTML;
-            btn.innerHTML = '<span class="loader-inline"></span>';
-        } else {
-            btn.disabled = false;
-            btn.innerHTML = btn.dataset.original || originalHTML || btn.innerHTML;
+        
+        function updateLiffStatus(isLoggedIn, name = "") {
+            const msg = isLoggedIn ? `✅ เชื่อมต่อ LINE: ${name}` : `⚠️ ไม่ได้เชื่อมต่อ LINE (จะไม่ได้รับแจ้งเตือน)`;
+            const elLogin = document.getElementById('liffStatusLogin');
+            const elMenu = document.getElementById('liffStatusMenu');
+            if(elLogin) { elLogin.innerText = msg; elLogin.className = "liff-status " + (isLoggedIn?"liff-ok":""); }
+            if(elMenu) { elMenu.innerText = msg; elMenu.className = "liff-status " + (isLoggedIn?"liff-ok":""); }
         }
-    }
 
-    // ============================================================
-    // LIFF
-    // ============================================================
-    async function initLIFF() {
-        try {
-            await liff.init({ liffId: LIFF_ID });
-            if (liff.isLoggedIn()) {
-                const profile = await liff.getProfile();
-                currentLineUserId = profile.userId;
-                updateLiffStatus(true, profile.displayName);
+        initLIFF(); 
+
+        const isLineApp = /Line/i.test(navigator.userAgent);
+        auth.setPersistence(isLineApp ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
+
+        auth.onAuthStateChanged((user) => {
+            const allPages = ['pageLogin', 'pageOTP', 'pageMenu', 'pageSender', 'pageReceiver'];
+            if (user) {
+                currentUserPhone = user.phoneNumber; 
+                document.getElementById('welcomeUser').innerText = "ผู้ใช้งาน: " + currentUserPhone;
+                document.getElementById('pageLogin').classList.add('hidden');
+                document.getElementById('pageOTP').classList.add('hidden');
+                checkDeepLink();
             } else {
-                if (liff.isInClient()) liff.login();
-                else updateLiffStatus(false);
+                allPages.forEach(id => document.getElementById(id)?.classList.add('hidden'));
+                document.getElementById('pageLogin').classList.remove('hidden');
+                renderRecaptcha();
             }
-        } catch (err) {
-            updateLiffStatus(false);
-        }
-    }
-
-    function updateLiffStatus(isLoggedIn, name = "") {
-        const msg = isLoggedIn
-            ? `✅ LINE: ${name}`
-            : `⚠️ ไม่ได้เชื่อมต่อ LINE`;
-        const cls = isLoggedIn ? "line-ok" : "line-warn";
-        ['liffStatusLogin', 'liffStatusMenu'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) { el.innerText = msg; el.className = cls; }
         });
-    }
 
-    initLIFF();
-
-    // ============================================================
-    // FIREBASE AUTH
-    // ============================================================
-    const isLineApp = /Line/i.test(navigator.userAgent);
-    auth.setPersistence(
-        isLineApp
-            ? firebase.auth.Auth.Persistence.LOCAL
-            : firebase.auth.Auth.Persistence.SESSION
-    ).catch(console.error);
-
-    auth.onAuthStateChanged((user) => {
-        const allPages = ['pageLogin','pageOTP','pageMenu','pageSender','pageReceiver'];
-        allPages.forEach(id => document.getElementById(id)?.classList.add('hidden'));
-
-        if (user) {
-            currentUserPhone = user.phoneNumber;
-            document.getElementById('welcomeUser').innerText = currentUserPhone;
-            checkDeepLink();
-        } else {
-            document.getElementById('pageLogin').classList.remove('hidden');
-            renderRecaptcha();
+        function checkDeepLink() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('page') === 'sender') nav('sender');
+            else if (params.get('page') === 'receiver') nav('receiver');
+            else nav('menu');
         }
-    });
 
-    function checkDeepLink() {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('page') === 'sender') nav('sender');
-        else if (params.get('page') === 'receiver') nav('receiver');
-        else nav('menu');
-    }
-
-    // ============================================================
-    // NAVIGATION
-    // ============================================================
-    const pages = ['pageMenu', 'pageSender', 'pageReceiver'];
-    function nav(p) {
-        pages.forEach(id => document.getElementById(id).classList.add('hidden'));
-
-        if (p === 'menu') {
-            document.getElementById('pageMenu').classList.remove('hidden');
-        }
-        if (p === 'sender') {
-            document.getElementById('pageSender').classList.remove('hidden');
-            document.getElementById('rPhone').value = '';
-            document.getElementById('reserveForm').classList.add('hidden');
-            selectedLocker = null;
-            loadLockers();
-        }
-        if (p === 'receiver') {
-            document.getElementById('pageReceiver').classList.remove('hidden');
-            document.getElementById('resultBox').innerHTML = '';
-            if (currentUserPhone) {
-                let local = currentUserPhone.startsWith('+66')
-                    ? '0' + currentUserPhone.substring(3)
-                    : currentUserPhone;
-                document.getElementById('sPhone').value = local;
+        function nav(p) {
+            ['pageMenu', 'pageSender', 'pageReceiver'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            if(p=='menu') document.getElementById('pageMenu').classList.remove('hidden');
+            if(p=='sender') { 
+                document.getElementById('pageSender').classList.remove('hidden'); 
+                loadLockers(); 
+                document.getElementById('rPhone').value = ""; 
+                document.getElementById('reserveForm').classList.add('hidden');
+            }
+            if(p=='receiver') { 
+                document.getElementById('pageReceiver').classList.remove('hidden'); 
+                document.getElementById('resultBox').innerHTML=""; 
+                
+                // แปลงเบอร์ +66... ของ Firebase ให้เป็น 08... แบบไทย
+                if(currentUserPhone) {
+                    let localPhone = currentUserPhone;
+                    if (localPhone.startsWith("+66")) {
+                        localPhone = "0" + localPhone.substring(3);
+                    }
+                    document.getElementById('sPhone').value = localPhone;
+                }
             }
         }
-    }
 
-    // ============================================================
-    // RECAPTCHA
-    // ============================================================
-    function renderRecaptcha() {
-        if (recaptchaInitialized) return;
-        const container = document.getElementById('recaptcha-container');
-        if (!container) return;
-        try {
-            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                size: 'normal',
-                callback: () => {},
-                'expired-callback': () => { recaptchaInitialized = false; }
-            });
-            window.recaptchaVerifier.render().then(() => { recaptchaInitialized = true; });
-        } catch(e) { console.error('Recaptcha error:', e); }
-    }
+        function renderRecaptcha() {
+            const container = document.getElementById('recaptcha-container');
+            if(container && container.hasChildNodes()) return;
+            if (!window.recaptchaVerifier) {
+                window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'normal' });
+                window.recaptchaVerifier.render();
+            }
+        }
 
-    // ============================================================
-    // SEND OTP
-    // ============================================================
-    function sendOTP(btn) {
-        const ph = document.getElementById('loginPhone').value.trim();
-        if (ph.length < 10) { showToast('⚠️ กรุณากรอกเบอร์ให้ครบ'); return; }
+        function sendOTP() {
+            const ph = document.getElementById('loginPhone').value;
+            if (ph.length < 10) return alert("กรุณากรอกเบอร์ให้ครบ");
+            const btn = event.target;
+            btn.innerText = "กำลังส่ง..."; btn.disabled = true;
+            renderRecaptcha(); 
 
-        setLoading(btn, true);
-        renderRecaptcha();
-
-        auth.signInWithPhoneNumber(ph, window.recaptchaVerifier)
-            .then((res) => {
+            auth.signInWithPhoneNumber(ph, window.recaptchaVerifier).then((res) => {
                 confirmationResult = res;
                 document.getElementById('pageLogin').classList.add('hidden');
                 document.getElementById('pageOTP').classList.remove('hidden');
-                showToast('📩 ส่ง OTP แล้ว กรุณาตรวจสอบ SMS');
-            })
-            .catch(e => {
-                showToast('❌ ' + (e.message || 'เกิดข้อผิดพลาด'));
-                recaptchaInitialized = false;
-                if (window.recaptchaVerifier) {
-                    window.recaptchaVerifier.clear();
-                    window.recaptchaVerifier = null;
+                btn.innerText = "รับรหัส OTP"; btn.disabled = false;
+            }).catch(e => { 
+                alert("Error: " + e.message); 
+                btn.innerText = "รับรหัส OTP"; btn.disabled = false;
+                if(window.recaptchaWidgetId) grecaptcha.reset(window.recaptchaWidgetId);
+            });
+        }
+
+        function verifyOTP() {
+            const code = document.getElementById('otpInput').value;
+            if(!code) return alert("กรุณากรอกรหัส");
+            confirmationResult.confirm(code).catch(() => alert("❌ รหัสผิด"));
+        }
+
+        function logout() {
+            if(confirm("ออกจากระบบ?")) auth.signOut().then(() => window.location.href = window.location.pathname);
+        }
+
+        async function registerMember() {
+            const ph = document.getElementById('regPhone').value;
+            // เช็คว่ากรอกครบ 10 ตัวหรือยัง
+            if(!/^\d{10}$/.test(ph)) return alert("กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก");
+            if(!currentLineUserId) return alert("⚠️ ไม่พบ LINE ID\nกรุณาเปิดลิงก์นี้ผ่านแอป LINE เพื่อลงทะเบียน");
+            const btn = event.target;
+            btn.innerText = "กำลังบันทึก..."; btn.disabled = true;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'register', pin: ph, lineId: currentLineUserId })
+                });
+                const result = await response.json();
+                if(result.status === "success") {
+                    alert("✅ ลงทะเบียนสำเร็จ!\nเมื่อมีคนฝากของให้เบอร์ " + ph + " ระบบจะแจ้งเตือนคุณทันที");
+                    document.getElementById('regPhone').value = ""; 
+                } else alert("❌ " + result.message);
+            } catch(e) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
+            btn.innerText = "ยืนยันลงทะเบียน"; btn.disabled = false;
+        }
+
+        async function loadLockers() {
+            const grid = document.getElementById('lockerGrid');
+            grid.innerHTML = '<div class="loader"></div>';
+            try {
+                const res = await fetch(API_URL + "?action=checkStatus");
+                if (!res.ok) throw new Error("Network response was not ok");
+
+                const data = await res.json();
+                grid.innerHTML = "";
+                
+                data.forEach(x => {
+                    let btn = document.createElement('button');
+                    let isFree = x.status === 'Available';
+                    let isPickingUp = x.status === 'PickingUp';
+                    
+                    if (isFree) btn.className = 'l-btn available';
+                    else if (isPickingUp) btn.className = 'l-btn pickingup';
+                    else btn.className = 'l-btn occupied';
+
+                    let statusText = isFree ? 'ว่าง' : (isPickingUp ? 'รอมารับ' : 'เต็ม');
+                    btn.innerHTML = `ตู้ ${x.locker}<br><span style="font-size:0.9em; font-weight:normal;">${statusText}</span>`;
+                    btn.disabled = !isFree; 
+                    
+                    if(isFree) btn.onclick = () => {
+                        selectedLocker = x.locker;
+                        document.getElementById('targetLocker').innerText = x.locker;
+                        document.getElementById('reserveForm').classList.remove('hidden');
+                        document.getElementById('reserveForm').scrollIntoView({behavior:'smooth'});
+                    };
+                    grid.appendChild(btn);
+                });
+            } catch(e) { 
+                grid.innerHTML = `<div style="grid-column: span 3; color: red;"><b>Error loading!</b><br>ไม่สามารถดึงข้อมูลตู้ได้ โปรดตรวจสอบสิทธิ์ Google Sheets</div>`;
+            }
+        }
+
+        async function doReserve() {
+            const ph = document.getElementById('rPhone').value;
+            // เช็คว่าไรเดอร์กรอกครบ 10 ตัวหรือยัง
+            if(!/^\d{10}$/.test(ph)) return alert("กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก");
+            const btn = event.target;
+            btn.innerText = "กำลังบันทึก..."; btn.disabled = true;
+
+            try {
+                const res = await fetch(API_URL, { 
+                    method:'POST', 
+                    body: JSON.stringify({ action: 'reserve', locker: selectedLocker, pin: ph, lineId: currentLineUserId }) 
+                });
+                const result = await res.json();
+                if(result.status === "success") {
+                    alert("✅ ฝากของสำเร็จ!\nตู้กำลังเปิด... กรุณาใส่ของและปิดตู้ให้สนิท"); 
+                    nav('menu');
+                } else alert("❌ " + result.message);
+            } catch(e) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
+            btn.innerText = "ยืนยันการฝาก"; btn.disabled = false;
+        }
+
+        async function doSearch() {
+            const ph = document.getElementById('sPhone').value;
+            // เช็คว่าลูกค้ากรอกครบ 10 ตัวหรือยัง
+            if(!/^\d{10}$/.test(ph)) return alert("กรุณากรอกเบอร์โทรศัพท์ 10 หลัก");
+            const box = document.getElementById('resultBox');
+            box.innerHTML = "🔍 กำลังค้นหา...";
+            try {
+                const res = await fetch(`${API_URL}?action=find&pin=${ph}`); 
+                const data = await res.json();
+                if(data.found) {
+                    box.innerHTML = `<div style="background:#d4edda; padding:15px; border-radius:10px;"><h3>🎉 พบพัสดุ!</h3><p>ตู้ ${data.locker}</p><button class="btn" onclick="doClear('${data.locker}')">เปิดตู้รับของ</button></div>`;
+                } else box.innerHTML = `<div style="background:#f8d7da; padding:15px; border-radius:10px; color:red;">❌ ไม่พบพัสดุ (สำหรับเบอร์ ${ph})</div>`;
+            } catch(e) { box.innerHTML = "Error"; }
+        }
+
+        async function doClear(n) {
+            if(!confirm("ยืนยันการรับของ? (ตู้จะเปิดทันที)")) return;
+            try {
+                const res = await fetch(API_URL, { method:'POST', body:JSON.stringify({action:'clear', locker:n}) });
+                const result = await res.json();
+                if(result.status === "success"){
+                     alert("🔓 ตู้กำลังเปิด... กรุณารับพัสดุและปิดตู้ให้สนิทครับ"); 
+                     nav('menu');
                 }
-            })
-            .finally(() => setLoading(btn, false));
-    }
-
-    // ============================================================
-    // VERIFY OTP
-    // ============================================================
-    function verifyOTP(btn) {
-        const code = document.getElementById('otpInput').value.trim();
-        if (!code || code.length < 6) { showToast('⚠️ กรุณากรอกรหัส 6 หลัก'); return; }
-        setLoading(btn, true);
-        confirmationResult.confirm(code)
-            .catch(() => { showToast('❌ รหัส OTP ไม่ถูกต้อง'); })
-            .finally(() => setLoading(btn, false));
-    }
-
-    // ============================================================
-    // LOGOUT
-    // ============================================================
-    function logout() {
-        if (confirm('ออกจากระบบ?')) {
-            auth.signOut().then(() => window.location.href = window.location.pathname);
+            } catch(e) { alert("Error"); }
         }
-    }
-
-    // ============================================================
-    // REGISTER MEMBER
-    // ============================================================
-    async function registerMember(btn) {
-        const ph = document.getElementById('regPhone').value.trim();
-        if (!/^\d{10}$/.test(ph)) { showToast('⚠️ กรุณากรอกเบอร์ 10 หลัก'); return; }
-        if (!currentLineUserId) { showToast('⚠️ ไม่พบ LINE ID — กรุณาเปิดผ่านแอป LINE'); return; }
-
-        setLoading(btn, true);
-        try {
-            const res = await fetchWithTimeout(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'register', pin: ph, lineId: currentLineUserId })
-            });
-            const result = await res.json();
-            if (result.status === 'success') {
-                showToast('✅ ลงทะเบียนสำเร็จ!');
-                document.getElementById('regPhone').value = '';
-            } else {
-                showToast('❌ ' + (result.message || 'เกิดข้อผิดพลาด'));
-            }
-        } catch(e) {
-            showToast('❌ ' + e.message);
-        } finally {
-            setLoading(btn, false);
-        }
-    }
-
-    // ============================================================
-    // LOAD LOCKERS
-    // ============================================================
-    async function loadLockers() {
-        const grid = document.getElementById('lockerGrid');
-        grid.innerHTML = '<div style="grid-column:span 3;text-align:center"><div class="loader"></div></div>';
-        try {
-            const res = await fetchWithTimeout(API_URL + '?action=checkStatus');
-            if (!res.ok) throw new Error('เซิร์ฟเวอร์ไม่ตอบสนอง');
-            const data = await res.json();
-            grid.innerHTML = '';
-
-            data.forEach(x => {
-                const btn = document.createElement('button');
-                const isFree = x.status === 'Available';
-                const isPickingUp = x.status === 'PickingUp';
-
-                if (isFree) btn.className = 'l-btn available';
-                else if (isPickingUp) btn.className = 'l-btn pickingup';
-                else btn.className = 'l-btn occupied';
-
-                const statusText = isFree ? '✅ ว่าง' : (isPickingUp ? '⏳ รอรับ' : '🔒 เต็ม');
-                btn.innerHTML = `ตู้ ${x.locker}<br><span style="font-size:11px; font-weight:400;">${statusText}</span>`;
-                btn.disabled = !isFree;
-
-                if (isFree) btn.onclick = () => {
-                    selectedLocker = x.locker;
-                    document.getElementById('targetLocker').innerText = x.locker;
-                    document.getElementById('reserveForm').classList.remove('hidden');
-                    document.getElementById('reserveForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                };
-                grid.appendChild(btn);
-            });
-        } catch(e) {
-            grid.innerHTML = `<div style="grid-column:span 3; text-align:center; color:#dc3545; padding:16px;">
-                ⚠️ โหลดข้อมูลไม่ได้<br><small>${e.message}</small>
-                <br><button class="btn btn-gray" onclick="loadLockers()" style="width:auto;padding:8px 16px;margin-top:10px;">ลองใหม่</button>
-            </div>`;
-        }
-    }
-
-    // ============================================================
-    // DO RESERVE
-    // ============================================================
-    async function doReserve(btn) {
-        const ph = document.getElementById('rPhone').value.trim();
-        if (!/^\d{10}$/.test(ph)) { showToast('⚠️ กรุณากรอกเบอร์ 10 หลัก'); return; }
-        if (!selectedLocker) { showToast('⚠️ กรุณาเลือกตู้ก่อน'); return; }
-
-        setLoading(btn, true);
-        try {
-            const res = await fetchWithTimeout(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'reserve', locker: selectedLocker, pin: ph, lineId: currentLineUserId })
-            });
-            const result = await res.json();
-            if (result.status === 'success') {
-                showToast('✅ ฝากของสำเร็จ! ตู้กำลังเปิด...');
-                setTimeout(() => nav('menu'), 1500);
-            } else {
-                showToast('❌ ' + (result.message || 'เกิดข้อผิดพลาด'));
-            }
-        } catch(e) {
-            showToast('❌ ' + e.message);
-        } finally {
-            setLoading(btn, false);
-        }
-    }
-
-    // ============================================================
-    // DO SEARCH
-    // ============================================================
-    async function doSearch(btn) {
-        const ph = document.getElementById('sPhone').value.trim();
-        if (!/^\d{10}$/.test(ph)) { showToast('⚠️ กรุณากรอกเบอร์ 10 หลัก'); return; }
-
-        const box = document.getElementById('resultBox');
-        box.innerHTML = '<div style="text-align:center"><div class="loader"></div></div>';
-        setLoading(btn, true);
-
-        try {
-            const res = await fetchWithTimeout(`${API_URL}?action=find&pin=${encodeURIComponent(ph)}`);
-            const data = await res.json();
-            if (data.found) {
-                const lockerNum = String(data.locker).replace(/[^a-zA-Z0-9ก-๙\s]/g, '');
-                box.innerHTML = `
-                    <div class="result-success">
-                        <div class="result-icon">🎉</div>
-                        <div class="result-title">พบพัสดุของคุณ!</div>
-                        <div class="result-locker">ตู้ ${lockerNum}</div>
-                        <button class="btn btn-primary" onclick="doClear('${lockerNum}', this)">🔓 เปิดตู้รับของ</button>
-                    </div>`;
-            } else {
-                box.innerHTML = `<div class="result-error">
-                    <div style="font-size:28px;margin-bottom:8px;">📭</div>
-                    <div style="font-weight:700; margin-bottom:4px;">ไม่พบพัสดุ</div>
-                    <div style="font-size:13px;">ไม่มีพัสดุสำหรับเบอร์ ${ph}</div>
-                </div>`;
-            }
-        } catch(e) {
-            box.innerHTML = `<div class="result-error">⚠️ ${e.message}</div>`;
-        } finally {
-            setLoading(btn, false);
-        }
-    }
-
-    // ============================================================
-    // DO CLEAR
-    // ============================================================
-    async function doClear(n, btn) {
-        if (!confirm('ยืนยันการรับของ?\nตู้จะเปิดทันที')) return;
-        setLoading(btn, true);
-        try {
-            const res = await fetchWithTimeout(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'clear', locker: n })
-            });
-            const result = await res.json();
-            if (result.status === 'success') {
-                showToast('🔓 ตู้กำลังเปิด... กรุณารับพัสดุ');
-                setTimeout(() => nav('menu'), 1500);
-            } else {
-                showToast('❌ ' + (result.message || 'เกิดข้อผิดพลาด'));
-            }
-        } catch(e) {
-            showToast('❌ ' + e.message);
-        } finally {
-            if (btn) setLoading(btn, false);
-        }
-    }
-</script>
+    </script>
 </body>
 </html>
