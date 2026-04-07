@@ -105,10 +105,10 @@
 
     <script>
         // ============================================
-        // ⚙️ ส่วนตั้งค่า
+        // ⚙️ ส่วนตั้งค่า (อัปเดตเป็นลิงก์ล่าสุดของคุณแล้ว)
         // ============================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbxvL5tvTkgREiWnIDVzAIjcjZ-knwrwBjTe705xPJhIBHPoRGjrytxzZCDdi9LzLEAr5A/exec";
-        const LIFF_ID = "2008871806-gxQPjbvh"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbzLEzrOq5L5V3YHgA3Qu5ns8Akjh9Q4vX91qnw9sdwAXQQsvNZGRCPOsfk__uEG-qTf-Q/exec";
+        const LIFF_ID = "2009731576-F5z0cdtp"; 
         const firebaseConfig = {
           apiKey: "AIzaSyD2pT2lhklqjcyhCtnZlKB4mExom8X3SZA",
           authDomain: "locker-project-01.firebaseapp.com",
@@ -188,7 +188,6 @@
                 document.getElementById('pageReceiver').classList.remove('hidden'); 
                 document.getElementById('resultBox').innerHTML=""; 
                 
-                // อัพเดต: ดึงเบอร์เต็มมาแสดง (โดยแปลงเบอร์ไทย +66 เป็น 0)
                 if(currentUserPhone) {
                     let localPhone = currentUserPhone;
                     if (localPhone.startsWith("+66")) {
@@ -239,7 +238,6 @@
 
         async function registerMember() {
             const ph = document.getElementById('regPhone').value;
-            // อัพเดต: เช็ค regex สำหรับ 10 หลัก
             if(!/^\d{10}$/.test(ph)) return alert("กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก");
             if(!currentLineUserId) return alert("⚠️ ไม่พบ LINE ID\nกรุณาเปิดลิงก์นี้ผ่านแอป LINE เพื่อลงทะเบียน");
             const btn = event.target;
@@ -264,8 +262,6 @@
             grid.innerHTML = '<div class="loader"></div>';
             try {
                 const res = await fetch(API_URL + "?action=checkStatus");
-                if (!res.ok) throw new Error("Network response was not ok");
-
                 const data = await res.json();
                 grid.innerHTML = "";
                 
@@ -291,13 +287,12 @@
                     grid.appendChild(btn);
                 });
             } catch(e) { 
-                grid.innerHTML = `<div style="grid-column: span 3; color: red;"><b>Error loading!</b><br>ไม่สามารถดึงข้อมูลตู้ได้ โปรดตรวจสอบสิทธิ์ Google Sheets</div>`;
+                grid.innerHTML = `<div style="grid-column: span 3; color: red;"><b>Error loading!</b><br>ไม่สามารถดึงข้อมูลตู้ได้</div>`;
             }
         }
 
         async function doReserve() {
             const ph = document.getElementById('rPhone').value;
-            // อัพเดต: เช็ค regex สำหรับ 10 หลัก
             if(!/^\d{10}$/.test(ph)) return alert("กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก");
             const btn = event.target;
             btn.innerText = "กำลังบันทึก..."; btn.disabled = true;
@@ -318,7 +313,6 @@
 
         async function doSearch() {
             const ph = document.getElementById('sPhone').value;
-            // อัพเดต: เช็ค regex สำหรับ 10 หลัก
             if(!/^\d{10}$/.test(ph)) return alert("กรุณากรอกเบอร์โทรศัพท์ 10 หลัก");
             const box = document.getElementById('resultBox');
             box.innerHTML = "🔍 กำลังค้นหา...";
